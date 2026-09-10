@@ -82,6 +82,54 @@ pnpm test        # run the lunar test suite
    pnpm build     # production build (also runs tsc)
    ```
 
+5. Deploy to Cloudflare Workers (from this monorepo root):
+
+   ```sh
+   # Copy apps/web/.dev.vars.example → apps/web/.dev.vars for local workerd
+   pnpm run deploy
+   ```
+
+   Use `pnpm run deploy` (not bare `pnpm deploy` — that is a different pnpm
+   CLI command). Wrangler config lives in `apps/web/wrangler.jsonc`; do not
+   run `wrangler deploy` from the repo root or Cloudflare will try workspace
+   autoconfig and fail with:
+
+   > The Cloudflare application detection logic has been run in the root of a
+   > workspace instead of targeting a specific project.
+
+### Workers Builds (Git-connected deploys)
+
+In the Worker → **Settings → Build**, use one of these monorepo setups:
+
+**Recommended — root directory = `apps/web`**
+
+| Setting | Value |
+| --- | --- |
+| Root directory | `apps/web` |
+| Build command | `cd ../.. && pnpm install && pnpm --filter @lunar/core build && pnpm --filter web build` |
+| Deploy command | `npx wrangler deploy` |
+| Non-production deploy | `npx wrangler versions upload` |
+
+**Alternative — root directory left empty (repo root)**
+
+| Setting | Value |
+| --- | --- |
+| Root directory | _(empty)_ |
+| Build command | `pnpm --filter @lunar/core build && pnpm --filter web build` |
+| Deploy command | `pnpm --filter web exec wrangler deploy` |
+| Non-production deploy | `pnpm --filter web exec wrangler versions upload` |
+
+Also set **runtime** Variables/Secrets on the Worker (not only build vars):
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+The Worker `name` in `apps/web/wrangler.jsonc` must be the same Worker that
+owns `amlich.lavenxsnow.world`. If the hostname still serves plain-text
+`Hello world`, a stub Worker is still bound to that domain — fix the build
+settings above, redeploy, and move the custom domain onto this Worker if
+needed.
+
 ## Features
 
 - `/` — lunar month calendar (solar grid with lunar day, month starts, full

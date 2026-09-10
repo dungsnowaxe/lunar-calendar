@@ -1,7 +1,21 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Worker name must match the Cloudflare Worker that owns
+  // amlich.lavenxsnow.world (Settings → Domains & Routes).
   "name": "lunar-calendar",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
+  "main": "@tanstack/react-start/server-entry",
+  "observability": {
+    "enabled": true,
+  },
+  // Attach the production hostname on deploy. If this domain is still
+  // bound to a different Hello-World stub Worker, remove that route in
+  // the dashboard first (or rename this `name` to match that Worker).
+  "routes": [
+    {
+      "pattern": "amlich.lavenxsnow.world",
+      "custom_domain": true,
+    },
+  ],
 }
