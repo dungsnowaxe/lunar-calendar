@@ -1,0 +1,11 @@
+{
+  "name": "lunar-calendar",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @lunar/core build && pnpm --filter web dev",
+    "build": "pnpm --filter @lunar/core build && pnpm --filter web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @lunar/core test"
+  }
+}

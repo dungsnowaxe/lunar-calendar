@@ -1,0 +1,151 @@
+import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
+import { getSupabaseServerClient } from '~/utils/supabase'
+
+/**
+ * Memorial events (ngày giỗ) — one shared list for the whole family. The
+ * lunar date below is the canonical, stored representation; occurrences
+ * always follow the regular month (tháng thường) and solar dates are
+ * computed with @lunar/core, never persisted.
+ */
+export interface MemorialEvent {
+  id: string
+  title: string
+  lunarDay: number
+  lunarMonth: number
+  notes: string | null
+  createdAt: string
+}
+
+const eventInputSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Vui lòng nhập tên sự kiện')
+    .max(120, 'Tên sự kiện tối đa 120 ký tự'),
+  lunarDay: z
+    .number()
+    .int('Ngày âm lịch không hợp lệ')
+    .min(1, 'Ngày âm lịch phải từ 1 đến 30')
+    .max(30, 'Ngày âm lịch phải từ 1 đến 30'),
+  lunarMonth: z
+    .number()
+    .int('Tháng âm lịch không hợp lệ')
+    .min(1, 'Tháng âm lịch phải từ 1 đến 12')
+    .max(12, 'Tháng âm lịch phải từ 1 đến 12'),
+  notes: z
+    .string()
+    .trim()
+    .max(500, 'Ghi chú tối đa 500 ký tự')
+    .nullish()
+    .transform((v) => v || null),
+})
+
+export const eventIdSchema = z.string().uuid('Sự kiện không hợp lệ')
+
+const eventInputSchemaWithId = eventInputSchema.extend({ id: eventIdSchema })
+
+function firstIssue(error: z.ZodError): string {
+  return error.issues[0]?.message ?? 'Dữ liệu không hợp lệ'
+}
+
+interface EventRow {
+  id: string
+  title: string
+  lunar_day: number
+  lunar_month: number
+  notes: string | null
+  created_at: string
+}
+
+function mapRow(row: EventRow): MemorialEvent {
+  return {
+    id: row.id,
+    title: row.title,
+    lunarDay: row.lunar_day,
+    lunarMonth: row.lunar_month,
+    notes: row.notes,
+    createdAt: row.created_at,
+  }
+}
+
+export const listEventsFn = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient()
+    const { data, error } = await supabase
+      .from('memorial_events')
+      .select('id, title, lunar_day, lunar_month, notes, created_at')
+      .order('lunar_month', { ascending: true })
+      .order('lunar_day', { ascending: true })
+    if (error) {
+      throw new Error(`Không thể tải sự kiện: ${error.message}`)
+    }
+    return (data as EventRow[]).map(mapRow)
+  },
+)
+
+export const createEventFn = createServerFn({ method: 'POST' })
+  .validator((d: unknown) => d)
+  .handler(async ({ data }) => {
+    const parsed = eventInputSchema.safeParse(data)
+    if (!parsed.success) {
+      return { error: firstIssue(parsed.error) }
+    }
+    const supabase = getSupabaseServerClient()
+    const { data: row, error } = await supabase
+      .from('memorial_events')
+      .insert({
+        title: parsed.data.title,
+        lunar_day: parsed.data.lunarDay,
+        lunar_month: parsed.data.lunarMonth,
+        notes: parsed.data.notes,
+      })
+      .select('id, title, lunar_day, lunar_month, notes, created_at')
+      .single()
+    if (error) {
+      return { error: `Không thể tạo sự kiện: ${error.message}` }
+    }
+    return { event: mapRow(row as EventRow) }
+  })
+
+export const updateEventFn = createServerFn({ method: 'POST' })
+  .validator((d: unknown) => d)
+  .handler(async ({ data }) => {
+    const parsed = eventInputSchemaWithId.safeParse(data)
+    if (!parsed.success) {
+      return { error: firstIssue(parsed.error) }
+    }
+    const supabase = getSupabaseServerClient()
+    const { data: row, error } = await supabase
+      .from('memorial_events')
+      .update({
+        title: parsed.data.title,
+        lunar_day: parsed.data.lunarDay,
+        lunar_month: parsed.data.lunarMonth,
+        notes: parsed.data.notes,
+      })
+      .eq('id', parsed.data.id)
+      .select('id, title, lunar_day, lunar_month, notes, created_at')
+      .single()
+    if (error) {
+      return { error: `Không thể cập nhật sự kiện: ${error.message}` }
+    }
+    return { event: mapRow(row as EventRow) }
+  })
+
+export const deleteEventFn = createServerFn({ method: 'POST' })
+  .validator((d: unknown) => eventIdSchema.safeParse(d))
+  .handler(async ({ data }) => {
+    if (!data.success) {
+      return { error: firstIssue(data.error) }
+    }
+    const supabase = getSupabaseServerClient()
+    const { error } = await supabase
+      .from('memorial_events')
+      .delete()
+      .eq('id', data.data)
+    if (error) {
+      return { error: `Không thể xóa sự kiện: ${error.message}` }
+    }
+    return { ok: true as const }
+  })
