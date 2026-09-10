@@ -1,20 +1,30 @@
-node_modules
-# Keep environment variables out of version control
-!.env
+# Dependencies
+node_modules/
+
+# Lockfiles from package managers this repo doesn't use (pnpm only)
 package-lock.json
 yarn.lock
 
+# Build output
+dist/
+.output/
+
+# Environment & secrets — only the *.example templates stay tracked
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
+
+# TanStack Start generated files
+.tanstack/
+
+# Cloudflare Workers
+.wrangler/
+worker-configuration.d.ts
+
+# Supabase CLI local state
+supabase/.temp/
+
+# OS & editor
 .DS_Store
-.cache
-.env
-.vercel
-.output
-/build/
-/api/
-/server/build
-/public/build# Sentry Config File
-.env.sentry-build-plugin
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+.cache/
