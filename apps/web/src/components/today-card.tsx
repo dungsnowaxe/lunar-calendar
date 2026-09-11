@@ -29,7 +29,8 @@ export function TodayCard() {
           {lunar.isLeapMonth ? ' (nhuận)' : ''} năm {canChiYear(lunar.year)}
         </p>
         <p className="text-sm text-muted-foreground">
-          Ngày {canChiDay(today)} — tháng {canChiMonth(lunar)}
+          Ngày {canChiDay(today)}
+          {canChiMonth(lunar) && <>, tháng {canChiMonth(lunar)}</>}
         </p>
       </CardContent>
       <BorderBeam size={60} duration={8} />

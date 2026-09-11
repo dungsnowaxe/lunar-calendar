@@ -53,7 +53,7 @@ function EventsPage() {
         <div>
           <h1 className="font-heading text-xl font-semibold">Sự kiện giỗ</h1>
           <p className="text-sm text-muted-foreground">
-            Lưu theo ngày âm lịch — ngày dương lịch được tính tự động mỗi năm.
+            Lưu theo ngày âm lịch. Ngày dương lịch được tính tự động mỗi năm.
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>

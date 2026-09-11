@@ -32,7 +32,7 @@ export function lunarLongLabel(l: LunarDate): string {
   return `${l.day} tháng ${l.month}${leap} năm ${canChiYear(l.year)}`
 }
 
-/** "Ngày 10 tháng 3 (âm lịch)" — the stored rule of an event. */
+/** "Ngày 10 tháng 3 (âm lịch)" - the stored rule of an event. */
 export function eventRuleLabel(e: {
   lunarDay: number
   lunarMonth: number

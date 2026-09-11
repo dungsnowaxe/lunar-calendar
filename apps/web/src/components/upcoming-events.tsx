@@ -74,7 +74,7 @@ export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
                   {event.title}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {eventRuleLabel(event)} — {formatSolar(date)}
+                  {eventRuleLabel(event)}, {formatSolar(date)}
                 </span>
               </div>
               {days === 0 ? (

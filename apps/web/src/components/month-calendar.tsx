@@ -134,7 +134,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
             {weekdayLong(solarDayOfWeek(selected))}, {formatSolar(selected)}
           </p>
           <p className="text-muted-foreground">
-            Âm lịch: {lunarLongLabel(selectedLunar)} — ngày {canChiDay(selected)}
+            Âm lịch: {lunarLongLabel(selectedLunar)}, ngày {canChiDay(selected)}
             {selectedLunar.isLeapMonth
               ? ''
               : `, tháng ${canChiMonth(selectedLunar)}`}

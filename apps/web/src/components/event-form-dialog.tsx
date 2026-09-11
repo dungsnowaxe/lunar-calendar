@@ -101,7 +101,7 @@ export function EventFormDialog({
         <DialogHeader>
           <DialogTitle>{event ? 'Sửa sự kiện' : 'Thêm sự kiện giỗ'}</DialogTitle>
           <DialogDescription>
-            Nhập ngày âm lịch — ngày giỗ sẽ lặp lại đúng ngày đó mỗi năm.
+            Nhập ngày âm lịch, ngày giỗ sẽ lặp lại đúng ngày đó mỗi năm.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

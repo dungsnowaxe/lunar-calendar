@@ -12,6 +12,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { Moon02Icon } from '@hugeicons/core-free-icons'
 import { DefaultCatchBoundary } from '../components/DefaultCatchBoundary'
 import { NotFound } from '../components/NotFound'
+import { ThemeSwitch } from '~/components/theme-switch'
 import { Toaster } from '../components/ui/sonner'
 import appCss from '../styles/app.css?url'
 import { seo } from '../utils/seo'
@@ -57,11 +58,19 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
+        {/* Apply the stored theme (or the OS scheme) before first paint.
+            Must mirror applyTheme() in theme-switch.tsx. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.theme;if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}",
+          }}
+        />
         <div className="flex min-h-svh flex-col">
           <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
             <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-6">
@@ -76,10 +85,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 />
                 Lịch Âm
               </Link>
-              <nav className="flex items-center gap-1">
-                <NavLink to="/">Lịch</NavLink>
-                <NavLink to="/su-kien">Sự kiện</NavLink>
-              </nav>
+              <div className="flex items-center gap-2">
+                <nav className="flex items-center gap-1">
+                  <NavLink to="/">Lịch</NavLink>
+                  <NavLink to="/su-kien">Sự kiện</NavLink>
+                </nav>
+                <ThemeSwitch />
+              </div>
             </div>
           </header>
           {children}

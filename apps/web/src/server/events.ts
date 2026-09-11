@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { getSupabaseServerClient } from '~/utils/supabase'
 
 /**
- * Memorial events (ngày giỗ) — one shared list for the whole family. The
+ * Memorial events (ngày giỗ) - one shared list for the whole family. The
  * lunar date below is the canonical, stored representation; occurrences
  * always follow the regular month (tháng thường) and solar dates are
  * computed with @lunar/core, never persisted.

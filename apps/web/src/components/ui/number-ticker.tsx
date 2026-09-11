@@ -1,5 +1,10 @@
 import { useEffect, useRef, type ComponentPropsWithoutRef } from "react"
-import { useInView, useMotionValue, useSpring } from "motion/react"
+import {
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "motion/react"
 
 import { cn } from "~/lib/utils"
 
@@ -27,13 +32,21 @@ export function NumberTicker({
     stiffness: 100,
   })
   const isInView = useInView(ref, { once: true, margin: "0px" })
+  const reduce = useReducedMotion()
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
+    const target = direction === "down" ? startValue : value
 
     if (isInView) {
+      if (reduce) {
+        // Reduced motion: no spring, show the final value immediately.
+        motionValue.jump(target)
+        springValue.jump(target)
+        return
+      }
       timer = setTimeout(() => {
-        motionValue.set(direction === "down" ? startValue : value)
+        motionValue.set(target)
       }, delay * 1000)
     }
 
@@ -42,7 +55,7 @@ export function NumberTicker({
         clearTimeout(timer)
       }
     }
-  }, [motionValue, isInView, delay, value, direction, startValue])
+  }, [motionValue, springValue, isInView, delay, value, direction, startValue, reduce])
 
   useEffect(
     () =>
