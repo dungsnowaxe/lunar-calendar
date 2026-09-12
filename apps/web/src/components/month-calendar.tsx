@@ -3,7 +3,6 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  CakeIcon,
 } from '@hugeicons/core-free-icons'
 import {
   canChiDay,
@@ -26,6 +25,7 @@ import {
   monthTitle,
   weekdayLong,
 } from '~/lib/labels'
+import { memorialEventIcon } from '~/lib/memorial'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import type { MemorialEvent } from '~/server/events'
@@ -144,7 +144,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
               {selectedEvents.map((event) => (
                 <li key={event.id} className="flex items-center gap-1.5 text-foreground">
                   <HugeiconsIcon
-                    icon={CakeIcon}
+                    icon={memorialEventIcon}
                     className="size-4 text-primary"
                     strokeWidth={2}
                   />

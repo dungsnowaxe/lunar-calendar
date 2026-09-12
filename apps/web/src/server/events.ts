@@ -84,28 +84,34 @@ export const listEventsFn = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-export const createEventFn = createServerFn({ method: 'POST' })
+const eventsInputSchema = z
+  .array(eventInputSchema)
+  .min(1, 'Vui lòng nhập ít nhất một sự kiện')
+  .max(10, 'Mỗi lần thêm tối đa 10 sự kiện')
+
+export const createEventsFn = createServerFn({ method: 'POST' })
   .validator((d: unknown) => d)
   .handler(async ({ data }) => {
-    const parsed = eventInputSchema.safeParse(data)
+    const parsed = eventsInputSchema.safeParse(data)
     if (!parsed.success) {
       return { error: firstIssue(parsed.error) }
     }
     const supabase = getSupabaseServerClient()
-    const { data: row, error } = await supabase
+    const { data: rows, error } = await supabase
       .from('memorial_events')
-      .insert({
-        title: parsed.data.title,
-        lunar_day: parsed.data.lunarDay,
-        lunar_month: parsed.data.lunarMonth,
-        notes: parsed.data.notes,
-      })
+      .insert(
+        parsed.data.map((item) => ({
+          title: item.title,
+          lunar_day: item.lunarDay,
+          lunar_month: item.lunarMonth,
+          notes: item.notes,
+        })),
+      )
       .select('id, title, lunar_day, lunar_month, notes, created_at')
-      .single()
     if (error) {
       return { error: `Không thể tạo sự kiện: ${error.message}` }
     }
-    return { event: mapRow(row as EventRow) }
+    return { events: (rows as EventRow[]).map(mapRow) }
   })
 
 export const updateEventFn = createServerFn({ method: 'POST' })
