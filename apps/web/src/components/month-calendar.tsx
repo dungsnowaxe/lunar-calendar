@@ -206,7 +206,7 @@ function CalendarCellButton({
       >
         {lunar.day === 1 ? lunarShortLabel(lunar) : lunar.day}
       </span>
-      <span className="flex h-1.5 min-h-1.5 items-center justify-center gap-0.5">
+      <span className="flex h-1.5 min-h-1.5 w-full max-w-full items-center justify-center gap-0.5 overflow-hidden">
         {dayEvents.map((event) => (
           <EventColorDot key={event.id} eventId={event.id} />
         ))}
