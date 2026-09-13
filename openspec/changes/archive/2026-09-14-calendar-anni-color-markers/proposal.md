@@ -9,7 +9,7 @@ When scanning the calendar for upcoming death anniversaries (ngày giỗ), every
 - Add a **left border accent** on each row in the Upcoming Events sidebar using the same color, so list and calendar are visually linked.
 - When a day has multiple anniversaries, show multiple dots in a compact row at the bottom of the cell.
 - Extend the selected-day detail panel to show each event with its color dot beside the title.
-- Use a shared `eventColorIndex(event)` helper so calendar, upcoming list, and event cards always pick the same slot for the same event.
+- Use a shared `eventColorIndex(eventId)` helper so calendar and upcoming list always pick the same slot for the same event.
 - Define a **12-color palette** as CSS variables with **separate light/dark values** tuned for contrast on calendar cells and list rows.
 
 ## Capabilities
@@ -17,8 +17,8 @@ When scanning the calendar for upcoming death anniversaries (ngày giỗ), every
 ### New Capabilities
 
 - `calendar-event-markers`: Per-event colored dots on calendar date cells, including multi-event days and selected-day detail styling.
-- `upcoming-events-color-accent`: Color-coded left border (and optional dot) on upcoming-event list rows, linked to the same event color.
-- `event-color-assignment`: 12-slot contrast-safe palette (CSS vars per theme) and client-side `eventColorIndex(event)` — hash event `id` to a slot so color is stable across views and sessions without persisting it.
+- `upcoming-events-color-accent`: Color-coded left border on upcoming-event list rows, linked to the same event color.
+- `event-color-assignment`: 12-slot contrast-safe palette (CSS vars per theme) and client-side `eventColorIndex(eventId)` — hash event `id` to a slot so color is stable across views and sessions without persisting it.
 
 ### Modified Capabilities
 

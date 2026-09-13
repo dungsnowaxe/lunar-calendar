@@ -50,24 +50,24 @@ className="bg-[var(--event-3)]"
 style={{ backgroundColor: `var(--event-${index + 1})` }}
 ```
 
-**Palette (oklch):** twelve evenly spaced hues. Light mode uses lower lightness (~0.50–0.55); dark mode uses higher lightness (~0.72–0.78) with slightly reduced chroma.
+**Palette (oklch):** twelve distinct hues (not strictly even spacing — neighboring warm hues were too similar). Light mode uses mid-high lightness (~0.60–0.70) so markers read as color, not ink, on white cards. Dark mode uses higher lightness (~0.78–0.84) with slightly reduced chroma.
 
 | Slot | Hue | Light (`:root`) | Dark (`.dark`) |
 |------|-----|-----------------|----------------|
-| 1 | 25 | `oklch(0.55 0.18 25)` | `oklch(0.75 0.14 25)` |
-| 2 | 145 | `oklch(0.50 0.16 145)` | `oklch(0.74 0.13 145)` |
-| 3 | 250 | `oklch(0.52 0.18 250)` | `oklch(0.76 0.14 250)` |
-| 4 | 310 | `oklch(0.50 0.17 310)` | `oklch(0.74 0.13 310)` |
-| 5 | 55 | `oklch(0.55 0.15 55)` | `oklch(0.78 0.12 55)` |
-| 6 | 200 | `oklch(0.48 0.14 200)` | `oklch(0.73 0.12 200)` |
-| 7 | 350 | `oklch(0.52 0.16 350)` | `oklch(0.75 0.13 350)` |
-| 8 | 85 | `oklch(0.47 0.12 85)` | `oklch(0.72 0.10 85)` |
-| 9 | 180 | `oklch(0.50 0.15 180)` | `oklch(0.74 0.12 180)` |
-| 10 | 270 | `oklch(0.48 0.14 270)` | `oklch(0.73 0.12 270)` |
-| 11 | 15 | `oklch(0.52 0.16 15)` | `oklch(0.75 0.13 15)` |
-| 12 | 120 | `oklch(0.50 0.13 120)` | `oklch(0.74 0.11 120)` |
+| 1 | 12 | `oklch(0.64 0.19 12)` | `oklch(0.78 0.14 12)` |
+| 2 | 150 | `oklch(0.62 0.16 150)` | `oklch(0.78 0.13 150)` |
+| 3 | 255 | `oklch(0.62 0.16 255)` | `oklch(0.80 0.12 255)` |
+| 4 | 305 | `oklch(0.64 0.15 305)` | `oklch(0.80 0.12 305)` |
+| 5 | 85 | `oklch(0.70 0.14 85)` | `oklch(0.84 0.12 85)` |
+| 6 | 195 | `oklch(0.62 0.12 195)` | `oklch(0.80 0.10 195)` |
+| 7 | 340 | `oklch(0.66 0.16 340)` | `oklch(0.82 0.12 340)` |
+| 8 | 115 | `oklch(0.60 0.13 115)` | `oklch(0.80 0.11 115)` |
+| 9 | 220 | `oklch(0.66 0.10 220)` | `oklch(0.82 0.09 220)` |
+| 10 | 280 | `oklch(0.60 0.14 280)` | `oklch(0.80 0.12 280)` |
+| 11 | 55 | `oklch(0.70 0.16 55)` | `oklch(0.82 0.13 55)` |
+| 12 | 125 | `oklch(0.66 0.15 125)` | `oklch(0.80 0.12 125)` |
 
-### 3. Shared module: `apps/web/src/lib/event-colors.ts`
+### 3. Shared module: `apps/web/src/lib/event-colors.tsx`
 
 Exports:
 
@@ -84,11 +84,11 @@ Replace `eventJdns: Set<number>` with `eventsByJdn: Map<number, MemorialEvent[]>
 
 `CalendarCellButton` receives `dayEvents: MemorialEvent[]` instead of `hasEvent: boolean`.
 
-**Marker layout:** absolute bottom row, `flex gap-0.5 justify-center`, max ~4 dots visible; if more than 4 events on one day (unlikely for a family app), show 3 dots + a tiny `+N` — defer unless needed.
+**Marker layout:** in-flow row under the lunar day (`flex h-1.5 items-center justify-center gap-0.5`), not absolutely positioned, so dots do not overlap the lunar number on small cells. Every cell reserves the same 6px row so the grid stays aligned when some days have no events.
 
-**Selected cell:** dots keep their event color (not `primary-foreground`). Selected state already inverts day number text; colored dots remain identifiable. Add `ring-1 ring-background/80` on each dot when selected for separation from primary fill.
+**Selected cell:** dots keep their event color (not `primary-foreground`). No background-matching ring on the dots.
 
-**Selected-day detail:** replace generic `CakeIcon` primary icon with `EventColorDot` beside each title (keep or drop cake icon — drop cake in detail to reduce noise; dot + title is sufficient).
+**Selected-day detail:** `EventColorDot` beside each title; no cake icon.
 
 ### 5. Upcoming events: left border accent
 
@@ -99,9 +99,11 @@ border-l-[3px] pl-3
 style={{ borderLeftColor: eventColorVar(event.id) }}
 ```
 
-Remove `text-primary` from the cake icon (or replace icon with dot for consistency). Row background stays default; only the border carries color.
+Remove the cake icon and any title-adjacent color dot. Row background stays default; only the left border carries color.
 
 Today's badge (`Hôm nay`) unchanged — sits beside the countdown as today.
+
+Month header: `flex` with `whitespace-nowrap` title (`text-sm sm:text-lg`) and `shrink-0` prev / today / next controls so the nav stays on one row when the Vietnamese month title is long.
 
 ### 6. No server or schema changes
 
@@ -112,15 +114,15 @@ Today's badge (`Hôm nay`) unchanged — sits beside the countdown as today.
 | Risk | Mitigation |
 |------|------------|
 | Hash collisions — two events share a slot | Acceptable with ≤12 events typical; 12 slots keep collision rate low; titles disambiguate on select |
-| Selected cell dots hard to see on primary bg | White ring on dots when selected; pick saturated hues |
-| More than 3–4 dots clutter a cell | Cap visible dots; family scale makes this rare |
-| Color meaning not memorizable without legend | Left border + dot on same row reinforces link; user selects day to confirm |
+| Selected cell dots hard to see on primary bg | Keep saturated event colors; no extra ring |
+| More than 3–4 dots clutter a cell | Family scale makes this rare; in-flow row wraps with `gap-0.5` |
+| Color meaning not memorizable without legend | Left border on upcoming rows + calendar dots share the same slot; user selects day to confirm |
 
 ## Migration Plan
 
 No database migration. Deploy is a single frontend release:
 
-1. Add CSS variables and `event-colors.ts`
+1. Add CSS variables and `event-colors.tsx`
 2. Update `MonthCalendar` and `UpcomingEvents`
 3. Verify light/dark mode manually on home page
 
