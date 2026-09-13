@@ -154,7 +154,9 @@ export function EventFormOverlay({
     e.preventDefault()
     setPending(true)
     setError(null)
-    let result: { error?: string }
+    let result:
+      | Awaited<ReturnType<typeof updateEventFn>>
+      | Awaited<ReturnType<typeof createEventsFn>>
     try {
       result = isEdit
         ? await updateEventFn({
@@ -167,7 +169,7 @@ export function EventFormOverlay({
       return
     }
     setPending(false)
-    if (result.error) {
+    if ('error' in result && result.error) {
       setError(result.error)
       return
     }

@@ -7,6 +7,6 @@
     "build": "pnpm --filter @lunar/core build && pnpm --filter web build",
     "deploy": "pnpm --filter @lunar/core build && pnpm --filter web deploy",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter @lunar/core test"
+    "test": "pnpm -r test"
   }
 }

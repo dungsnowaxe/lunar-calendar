@@ -1,73 +1,20 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { getSupabaseServerClient } from '~/utils/supabase'
+import {
+  createMemorialEvents,
+  eventInputSchema,
+  firstIssue,
+  mapRow,
+  type EventRow,
+  type MemorialEvent,
+} from './memorial-events'
 
-/**
- * Memorial events (ngày giỗ) - one shared list for the whole family. The
- * lunar date below is the canonical, stored representation; occurrences
- * always follow the regular month (tháng thường) and solar dates are
- * computed with @lunar/core, never persisted.
- */
-export interface MemorialEvent {
-  id: string
-  title: string
-  lunarDay: number
-  lunarMonth: number
-  notes: string | null
-  createdAt: string
-}
-
-const eventInputSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, 'Vui lòng nhập tên sự kiện')
-    .max(120, 'Tên sự kiện tối đa 120 ký tự'),
-  lunarDay: z
-    .number()
-    .int('Ngày âm lịch không hợp lệ')
-    .min(1, 'Ngày âm lịch phải từ 1 đến 30')
-    .max(30, 'Ngày âm lịch phải từ 1 đến 30'),
-  lunarMonth: z
-    .number()
-    .int('Tháng âm lịch không hợp lệ')
-    .min(1, 'Tháng âm lịch phải từ 1 đến 12')
-    .max(12, 'Tháng âm lịch phải từ 1 đến 12'),
-  notes: z
-    .string()
-    .trim()
-    .max(500, 'Ghi chú tối đa 500 ký tự')
-    .nullish()
-    .transform((v) => v || null),
-})
+export type { MemorialEvent }
 
 export const eventIdSchema = z.string().uuid('Sự kiện không hợp lệ')
 
 const eventInputSchemaWithId = eventInputSchema.extend({ id: eventIdSchema })
-
-function firstIssue(error: z.ZodError): string {
-  return error.issues[0]?.message ?? 'Dữ liệu không hợp lệ'
-}
-
-interface EventRow {
-  id: string
-  title: string
-  lunar_day: number
-  lunar_month: number
-  notes: string | null
-  created_at: string
-}
-
-function mapRow(row: EventRow): MemorialEvent {
-  return {
-    id: row.id,
-    title: row.title,
-    lunarDay: row.lunar_day,
-    lunarMonth: row.lunar_month,
-    notes: row.notes,
-    createdAt: row.created_at,
-  }
-}
 
 export const listEventsFn = createServerFn({ method: 'GET' }).handler(
   async () => {
@@ -84,34 +31,10 @@ export const listEventsFn = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-const eventsInputSchema = z
-  .array(eventInputSchema)
-  .min(1, 'Vui lòng nhập ít nhất một sự kiện')
-  .max(10, 'Mỗi lần thêm tối đa 10 sự kiện')
-
 export const createEventsFn = createServerFn({ method: 'POST' })
   .validator((d: unknown) => d)
   .handler(async ({ data }) => {
-    const parsed = eventsInputSchema.safeParse(data)
-    if (!parsed.success) {
-      return { error: firstIssue(parsed.error) }
-    }
-    const supabase = getSupabaseServerClient()
-    const { data: rows, error } = await supabase
-      .from('memorial_events')
-      .insert(
-        parsed.data.map((item) => ({
-          title: item.title,
-          lunar_day: item.lunarDay,
-          lunar_month: item.lunarMonth,
-          notes: item.notes,
-        })),
-      )
-      .select('id, title, lunar_day, lunar_month, notes, created_at')
-    if (error) {
-      return { error: `Không thể tạo sự kiện: ${error.message}` }
-    }
-    return { events: (rows as EventRow[]).map(mapRow) }
+    return createMemorialEvents(data, getSupabaseServerClient())
   })
 
 export const updateEventFn = createServerFn({ method: 'POST' })
