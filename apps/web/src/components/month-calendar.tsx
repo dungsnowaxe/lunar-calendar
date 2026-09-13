@@ -77,7 +77,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-sm whitespace-nowrap sm:text-lg">
+          <CardTitle className="min-w-0 truncate text-sm sm:text-lg">
             {monthTitle(cursor.year, cursor.month)}
           </CardTitle>
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
