@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { PlusSignIcon } from '@hugeicons/core-free-icons'
 import {
@@ -26,9 +25,10 @@ interface UpcomingEventsProps {
   events: MemorialEvent[]
   /** How many occurrences to show. */
   count?: number
+  onAdd: () => void
 }
 
-export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
+export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps) {
   const today = solarToday()
 
   const upcoming = events
@@ -49,7 +49,7 @@ export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
       <CardHeader>
         <CardTitle>Sắp tới</CardTitle>
         <CardAction>
-          <Button render={<Link to="/su-kien" />} size="sm" variant="ghost">
+          <Button size="sm" variant="ghost" onClick={onAdd}>
             <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
             Thêm
           </Button>
