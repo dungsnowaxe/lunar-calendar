@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { formatSolar, nextOccurrences, solarToday } from '@lunar/core'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -112,22 +112,38 @@ export function EventFormOverlay({
   const [entries, setEntries] = useState<EventDraft[]>(() => [emptyDraft()])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const pendingRef = useRef(false)
+  const saveIdRef = useRef(0)
   const isEdit = event != null
 
+  function setSavePending(next: boolean) {
+    pendingRef.current = next
+    setPending(next)
+  }
+
   function resetForm() {
+    saveIdRef.current += 1
     setEntries([emptyDraft()])
-    setPending(false)
+    setSavePending(false)
     setError(null)
   }
 
   useEffect(() => {
     if (!open) return
+    saveIdRef.current += 1
     setEntries(event ? [draftFromEvent(event)] : [emptyDraft()])
-    setPending(false)
+    setSavePending(false)
     setError(null)
   }, [open, event])
 
-  function handleOpenChange(next: boolean) {
+  function handleOpenChange(
+    next: boolean,
+    eventDetails?: { cancel: () => void },
+  ) {
+    if (!next && pendingRef.current) {
+      eventDetails?.cancel()
+      return
+    }
     if (!next) resetForm()
     onOpenChange(next)
   }
@@ -152,7 +168,8 @@ export function EventFormOverlay({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setPending(true)
+    const saveId = ++saveIdRef.current
+    setSavePending(true)
     setError(null)
     let result:
       | Awaited<ReturnType<typeof updateEventFn>>
@@ -164,11 +181,13 @@ export function EventFormOverlay({
           })
         : await createEventsFn({ data: entries.map(toPayload) })
     } catch {
-      setPending(false)
+      if (saveId !== saveIdRef.current) return
+      setSavePending(false)
       setError('Không thể kết nối máy chủ. Vui lòng thử lại.')
       return
     }
-    setPending(false)
+    if (saveId !== saveIdRef.current) return
+    setSavePending(false)
     if ('error' in result && result.error) {
       setError(result.error)
       return
@@ -227,8 +246,15 @@ export function EventFormOverlay({
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto sm:max-w-lg">
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        disablePointerDismissal={pending}
+      >
+        <DialogContent
+          className="max-h-[85vh] max-w-lg overflow-y-auto sm:max-w-lg"
+          showCloseButton={!pending}
+        >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
@@ -244,10 +270,15 @@ export function EventFormOverlay({
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={handleOpenChange}
+      disablePointerDismissal={pending}
+    >
       <SheetContent
         side="bottom"
         className="flex max-h-[90dvh] flex-col gap-0 p-0"
+        showCloseButton={!pending}
       >
         <SheetHeader className="shrink-0 pr-12">
           <SheetTitle>{title}</SheetTitle>
