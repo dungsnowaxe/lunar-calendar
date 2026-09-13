@@ -1,14 +1,9 @@
 import { useMemo, useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  CakeIcon,
-} from '@hugeicons/core-free-icons'
+import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import {
   canChiDay,
   canChiMonth,
-  canChiYear,
   compareSolar,
   formatSolar,
   occurrenceInLunarYear,
@@ -19,6 +14,7 @@ import {
   type SolarDate,
 } from '@lunar/core'
 import { monthGrid, shiftMonth } from '~/lib/calendar-grid'
+import { EventColorDot } from '~/lib/event-colors'
 import {
   CALENDAR_HEADERS,
   lunarLongLabel,
@@ -51,16 +47,20 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
 
   // Occurrences of every event inside the visible month (with a one year
   // margin on each side to catch lunar months that straddle solar years).
-  const eventJdns = useMemo(() => {
-    const set = new Set<number>()
+  const eventsByJdn = useMemo(() => {
+    const map = new Map<number, MemorialEvent[]>()
     for (const event of events) {
       const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth }
       for (let lunarYear = cursor.year - 1; lunarYear <= cursor.year + 1; lunarYear++) {
         const occurrence = occurrenceInLunarYear(rule, lunarYear)
-        if (occurrence) set.add(solarToJdn(occurrence))
+        if (!occurrence) continue
+        const jdn = solarToJdn(occurrence)
+        const dayEvents = map.get(jdn)
+        if (dayEvents) dayEvents.push(event)
+        else map.set(jdn, [event])
       }
     }
-    return set
+    return map
   }, [events, cursor])
 
   const selectedLunar = solarToLunar(selected)
@@ -76,9 +76,11 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-lg">{monthTitle(cursor.year, cursor.month)}</CardTitle>
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm whitespace-nowrap sm:text-lg">
+            {monthTitle(cursor.year, cursor.month)}
+          </CardTitle>
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -124,7 +126,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
               lunar={lunarByJdn.get(solarToJdn(cell.date))!}
               isToday={compareSolar(cell.date, today) === 0}
               isSelected={compareSolar(cell.date, selected) === 0}
-              hasEvent={eventJdns.has(solarToJdn(cell.date))}
+              dayEvents={eventsByJdn.get(solarToJdn(cell.date)) ?? []}
               onSelect={() => setSelected(cell.date)}
             />
           ))}
@@ -143,11 +145,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
             <ul className="mt-2 flex flex-col gap-1">
               {selectedEvents.map((event) => (
                 <li key={event.id} className="flex items-center gap-1.5 text-foreground">
-                  <HugeiconsIcon
-                    icon={CakeIcon}
-                    className="size-4 text-primary"
-                    strokeWidth={2}
-                  />
+                  <EventColorDot eventId={event.id} className="size-2" />
                   {event.title}
                 </li>
               ))}
@@ -164,14 +162,14 @@ function CalendarCellButton({
   lunar,
   isToday,
   isSelected,
-  hasEvent,
+  dayEvents,
   onSelect,
 }: {
   cell: { date: SolarDate; inMonth: boolean }
   lunar: ReturnType<typeof solarToLunar>
   isToday: boolean
   isSelected: boolean
-  hasEvent: boolean
+  dayEvents: MemorialEvent[]
   onSelect: () => void
 }) {
   const dayOfWeek = solarDayOfWeek(cell.date)
@@ -184,7 +182,7 @@ function CalendarCellButton({
       onClick={onSelect}
       aria-pressed={isSelected}
       className={cn(
-        'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-sm transition-colors',
+        'flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-sm transition-colors',
         'hover:bg-muted',
         !cell.inMonth && 'text-muted-foreground/50',
         dayOfWeek === 0 && cell.inMonth && 'text-red-600 dark:text-red-400',
@@ -192,7 +190,12 @@ function CalendarCellButton({
         isToday && !isSelected && 'ring-2 ring-primary ring-inset',
       )}
     >
-      <span className={cn('font-medium', (isNewMoon || isFullMoon) && cell.inMonth && !isSelected && 'text-primary')}>
+      <span
+        className={cn(
+          'leading-none font-medium',
+          (isNewMoon || isFullMoon) && cell.inMonth && !isSelected && 'text-primary',
+        )}
+      >
         {cell.date.day}
       </span>
       <span
@@ -203,14 +206,11 @@ function CalendarCellButton({
       >
         {lunar.day === 1 ? lunarShortLabel(lunar) : lunar.day}
       </span>
-      {hasEvent && (
-        <span
-          className={cn(
-            'absolute bottom-1 size-1.5 rounded-full',
-            isSelected ? 'bg-primary-foreground' : 'bg-primary',
-          )}
-        />
-      )}
+      <span className="flex h-1.5 min-h-1.5 items-center justify-center gap-0.5">
+        {dayEvents.map((event) => (
+          <EventColorDot key={event.id} eventId={event.id} />
+        ))}
+      </span>
     </button>
   )
 }

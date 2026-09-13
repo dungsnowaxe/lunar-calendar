@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { CakeIcon, PlusSignIcon } from '@hugeicons/core-free-icons'
+import { PlusSignIcon } from '@hugeicons/core-free-icons'
 import {
   formatSolar,
   nextOccurrences,
@@ -18,7 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import { daysBetween, daysUntilLabel, eventRuleLabel } from '~/lib/labels'
+import { eventColorVar } from '~/lib/event-colors'
+import { daysBetween, eventRuleLabel } from '~/lib/labels'
 import type { MemorialEvent } from '~/server/events'
 
 interface UpcomingEventsProps {
@@ -63,16 +64,13 @@ export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
         {upcoming.map(({ event, date }) => {
           const days = daysBetween(today, date)
           return (
-            <div key={event.id} className="flex items-start justify-between gap-3">
+            <div
+              key={event.id}
+              className="flex items-start justify-between gap-3 border-l-[3px] pl-3"
+              style={{ borderLeftColor: eventColorVar(event.id) }}
+            >
               <div className="flex min-w-0 flex-col">
-                <span className="flex items-center gap-1.5 truncate text-sm font-medium">
-                  <HugeiconsIcon
-                    icon={CakeIcon}
-                    className="size-4 shrink-0 text-primary"
-                    strokeWidth={2}
-                  />
-                  {event.title}
-                </span>
+                <span className="truncate text-sm font-medium">{event.title}</span>
                 <span className="text-xs text-muted-foreground">
                   {eventRuleLabel(event)}, {formatSolar(date)}
                 </span>
