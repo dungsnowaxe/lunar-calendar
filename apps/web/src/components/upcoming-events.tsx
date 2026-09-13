@@ -1,6 +1,5 @@
-import { Link } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { CakeIcon, PlusSignIcon } from '@hugeicons/core-free-icons'
+import { PlusSignIcon } from '@hugeicons/core-free-icons'
 import {
   formatSolar,
   nextOccurrences,
@@ -19,15 +18,17 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { daysBetween, daysUntilLabel, eventRuleLabel } from '~/lib/labels'
+import { memorialEventIcon } from '~/lib/memorial'
 import type { MemorialEvent } from '~/server/events'
 
 interface UpcomingEventsProps {
   events: MemorialEvent[]
   /** How many occurrences to show. */
   count?: number
+  onAdd: () => void
 }
 
-export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
+export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps) {
   const today = solarToday()
 
   const upcoming = events
@@ -48,7 +49,7 @@ export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
       <CardHeader>
         <CardTitle>Sắp tới</CardTitle>
         <CardAction>
-          <Button render={<Link to="/su-kien" />} size="sm" variant="ghost">
+          <Button size="sm" variant="ghost" onClick={onAdd}>
             <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
             Thêm
           </Button>
@@ -67,7 +68,7 @@ export function UpcomingEvents({ events, count = 5 }: UpcomingEventsProps) {
               <div className="flex min-w-0 flex-col">
                 <span className="flex items-center gap-1.5 truncate text-sm font-medium">
                   <HugeiconsIcon
-                    icon={CakeIcon}
+                    icon={memorialEventIcon}
                     className="size-4 shrink-0 text-primary"
                     strokeWidth={2}
                   />

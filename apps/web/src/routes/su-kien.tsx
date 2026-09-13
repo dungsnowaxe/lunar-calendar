@@ -3,15 +3,15 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  CakeIcon,
   Delete02Icon,
   Edit02Icon,
   PlusSignIcon,
 } from '@hugeicons/core-free-icons'
 import { formatSolar, nextOccurrences, solarToday } from '@lunar/core'
 import { deleteEventFn, listEventsFn, type MemorialEvent } from '~/server/events'
-import { EventFormDialog } from '~/components/event-form-dialog'
+import { EventFormOverlay } from '~/components/event-form-overlay'
 import { daysBetween, daysUntilLabel, eventRuleLabel } from '~/lib/labels'
+import { memorialEventIcon } from '~/lib/memorial'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +56,12 @@ function EventsPage() {
             Lưu theo ngày âm lịch. Ngày dương lịch được tính tự động mỗi năm.
           </p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
+        <Button
+          onClick={() => {
+            setEditing(undefined)
+            setFormOpen(true)
+          }}
+        >
           <HugeiconsIcon
             icon={PlusSignIcon}
             strokeWidth={2}
@@ -70,14 +75,20 @@ function EventsPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
             <HugeiconsIcon
-              icon={CakeIcon}
+              icon={memorialEventIcon}
               className="size-8 text-muted-foreground"
               strokeWidth={1.5}
             />
             <p className="text-sm text-muted-foreground">
               Chưa có sự kiện nào. Thêm ngày giỗ đầu tiên của gia đình bạn.
             </p>
-            <Button variant="outline" onClick={() => setFormOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditing(undefined)
+                setFormOpen(true)
+              }}
+            >
               <HugeiconsIcon
                 icon={PlusSignIcon}
                 strokeWidth={2}
@@ -102,9 +113,12 @@ function EventsPage() {
         </div>
       )}
 
-      <EventFormDialog
+      <EventFormOverlay
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open)
+          if (!open) setEditing(undefined)
+        }}
         event={editing}
         onSaved={refresh}
       />
@@ -150,7 +164,7 @@ function EventCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <HugeiconsIcon
-            icon={CakeIcon}
+            icon={memorialEventIcon}
             className="size-4 shrink-0 text-primary"
             strokeWidth={2}
           />
