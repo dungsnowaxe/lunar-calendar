@@ -1,0 +1,16 @@
+{
+  "name": "Lịch Âm — lunar calendar",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "web",
+      "command": "bash .cursor/dev.sh",
+      "description": "TanStack Start dev server on http://localhost:3000 (Node 24)."
+    }
+  ],
+  "ports": [
+    { "name": "web app", "port": 3000 },
+    { "name": "supabase api", "port": 54321 }
+  ]
+}
