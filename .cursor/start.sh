@@ -29,14 +29,25 @@ if ! sudo docker info >/dev/null 2>&1; then
     exit 1
   fi
 fi
-# Let the repo user drive Docker (and the Supabase CLI) without sudo.
-sudo chmod 666 /var/run/docker.sock || true
+# Let the repo user drive Docker (and the Supabase CLI) without sudo, scoped to
+# that user only rather than making the root-equivalent socket world-writable.
+sudo chown "$(id -un)":"$(id -gn)" /var/run/docker.sock || true
+sudo chmod 600 /var/run/docker.sock || true
 
 # --- Supabase local stack. ---
-if docker ps --format '{{.Names}}' | grep -q '^supabase_db_'; then
+# Treat the stack as up only when all three core containers (db, PostgREST,
+# Kong) are running; a partial failure where some stopped must still trigger
+# recovery. `supabase start` is idempotent and reconciles the missing ones.
+core_up="$(docker ps --format '{{.Names}}' | grep -cE '^supabase_(db|rest|kong)_' || true)"
+if [ "$core_up" -eq 3 ]; then
   echo "Supabase already running."
 else
-  echo "Starting Supabase..."
+  echo "Recovering Supabase stack..."
+  # `supabase start` does not restart an already-created container that has
+  # exited, so first bring any stopped Supabase containers back up...
+  docker ps -aq --filter 'name=^supabase_' --filter 'status=exited' \
+    | xargs -r docker start >/dev/null 2>&1 || true
+  # ...then let the CLI create/start anything that is still missing.
   supabase start
 fi
 
