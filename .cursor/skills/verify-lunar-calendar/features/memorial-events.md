@@ -12,11 +12,12 @@ upcoming solar dates on each card.
 - `events-delete` confirms via `Xóa sự kiện?` and removes the card.
 - `events-preview` shows `Lần tới vào: <solar>` while the form is open.
 - `events-home-echo` surfaces new events under home `Sắp tới`.
+- `events-home-create` opens the same create overlay from home `Thêm` without leaving `/`.
 
 ## How to get to it (user POV)
 
 - Choose nav `Sự kiện`.
-- From home `Sắp tới`, choose `Thêm`.
+- From home `Sắp tới`, choose `Thêm` (overlay on `/`).
 - On `/su-kien`, choose `Thêm sự kiện` (header or empty-state button).
 
 ## Driving it with browser tools
@@ -30,11 +31,13 @@ Preconditions:
 
 - **Open create.** Go to `$URL/su-kien`. Choose role `button` name
   `Thêm sự kiện`. Dialog title `Thêm sự kiện giỗ` appears.
-- **Fill title.** Fill `#event-title` with `[verify-<RUN_ID>] Giỗ kiểm tra`.
-- **Set lunar date.** Use `#event-day` / `#event-month` selects (labels
-  `Ngày âm lịch` / `Tháng âm lịch`). Prefer day `10` and month `1` unless the
-  recipe needs another pair. Confirm `Lần tới vào:` shows a solar date.
-- **Optional notes.** Fill `#event-notes` with `verify-only; safe to delete`.
+- **Fill title.** Fill the textbox labeled `Tên sự kiện` with
+  `[verify-<RUN_ID>] Giỗ kiểm tra`.
+- **Set lunar date.** Open the selects labeled `Ngày` and `Tháng` and choose
+  bare option names `10` and `1` unless the recipe needs another pair. Confirm
+  `Lần tới vào:` shows a solar date.
+- **Optional notes.** Fill the textbox labeled `Ghi chú` with
+  `verify-only; safe to delete`.
 - **Save.** Choose role `button` name `Thêm sự kiện` in the dialog footer
   (not `Hủy`). Toast `Đã thêm sự kiện` appears; a card titled with the fixture
   name is on the list with `Ngày 10 tháng 1 (âm lịch)`.
@@ -54,8 +57,9 @@ Preconditions:
 - **Shared database.** Only create/delete titles prefixed `[verify-<RUN_ID>]`.
   Never click delete on family events (e.g. real `Giỗ …` rows without the
   prefix).
-- Base UI Select options render as `Ngày N` / `Tháng N`; open the trigger then
-  choose the option by that accessible name.
+- Form control IDs are React `useId()` values — always target labels
+  (`Tên sự kiện`, `Ngày`, `Tháng`, `Ghi chú`), never `#event-title`.
+- Select options are bare numbers (`10`), not `Ngày 10`.
 - Dialog submit and page header both say `Thêm sự kiện` — scope the click to
   the open dialog.
 - Cancel with `Hủy` must leave no new card for the typed title.

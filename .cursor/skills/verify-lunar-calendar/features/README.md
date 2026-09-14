@@ -9,7 +9,7 @@ feature file as the recipe.
 - Launch with `.cursor/skills/verify-lunar-calendar/bin/launch` so the app is
   on `http://127.0.0.1:4317` (or your `VERIFY_PORT`) and a `RUN_ID` is recorded.
 - Run `bin/doctor` and require PASS before any drive.
-- Put the skill's `node_modules` in place (`cd .cursor/skills/verify-lunar-calendar && npm install`) when using Playwright helpers.
+- Put the skill's `node_modules` in place (`cd .cursor/skills/verify-lunar-calendar && npm ci`) when using Playwright helpers.
 - Never drive an instance that was not started by this verification run
   (refuse everyday `pnpm dev` on port 3000).
 - Memorial events live in a **shared** Supabase table. Prefix every created

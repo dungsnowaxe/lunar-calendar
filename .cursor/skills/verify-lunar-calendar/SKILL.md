@@ -96,10 +96,11 @@ Stable handles used by the helper and feature recipes:
 | Month title | first `[data-slot="card-title"]` matching `Tháng N năm YYYY` |
 | Today sidebar | text `Hôm nay` (uppercase label) |
 | Upcoming sidebar | heading/title `Sắp tới` |
-| Add event | role `button` name `Thêm sự kiện` |
-| Event form title | `#event-title` / label `Tên sự kiện` |
-| Lunar day / month | `#event-day` / `#event-month` (Base UI Select) |
-| Notes | `#event-notes` |
+| Add event (events page) | role `button` name `Thêm sự kiện` |
+| Add event (home) | role `button` name `Thêm` in `Sắp tới` — opens overlay on `/` |
+| Event form title | label `Tên sự kiện` (IDs come from React `useId`, do not hard-code) |
+| Lunar day / month | labels `Ngày` / `Tháng` (Base UI Select; options are bare numbers `1`–`30` / `1`–`12`) |
+| Notes | label `Ghi chú` |
 | Submit create | role `button` name `Thêm sự kiện` inside dialog `Thêm sự kiện giỗ` |
 | Cancel form | role `button` name `Hủy` |
 | Edit / delete | role `button` name `Sửa <title>` / `Xóa <title>` |
@@ -169,10 +170,10 @@ All scripts are executable; invoke from repo root as shown.
 | `bin/drive-calendar.mjs [RUN_ID]` | Playwright proof for month calendar navigation |
 | `bin/common.sh` | Shared path helpers (sourced by the shell scripts) |
 
-Install Playwright deps once:
+Install Playwright deps once (uses the committed `package-lock.json`):
 
 ```sh
-cd .cursor/skills/verify-lunar-calendar && npm install && npx playwright install chromium
+cd .cursor/skills/verify-lunar-calendar && npm ci && npx playwright install chromium
 ```
 
 ## Suggested first proof
@@ -182,3 +183,6 @@ cd .cursor/skills/verify-lunar-calendar && npm install && npx playwright install
 3. `node bin/drive-calendar.mjs` (feature `lunar-calendar`)
 4. `bin/cleanup`
 5. Confirm `artifacts/<RUN_ID>/calendar/` still exists
+
+`RUN_ID` must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`. Cleanup only signals
+processes whose command line still contains this run's `--host` and `--port`.

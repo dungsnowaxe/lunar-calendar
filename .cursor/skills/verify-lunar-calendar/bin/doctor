@@ -19,8 +19,11 @@ if [[ ! -f "${PID_FILE}" ]]; then
   errors=$((errors + 1))
 else
   pid="$(tr -d '[:space:]' <"${PID_FILE}")"
-  if kill -0 "${pid}" 2>/dev/null; then
-    echo "OK: process ${pid} is alive"
+  if pid_matches_run "${pid}" "${HOST}" "${PORT}"; then
+    echo "OK: process ${pid} is alive and matches this run's Vite fingerprint"
+  elif kill -0 "${pid}" 2>/dev/null; then
+    echo "FAIL: process ${pid} is alive but does not match --host ${HOST} --port ${PORT}"
+    errors=$((errors + 1))
   else
     echo "FAIL: process ${pid} is not running"
     errors=$((errors + 1))
@@ -62,11 +65,11 @@ else
   echo "OK: /su-kien returns 200"
 fi
 
-if [[ ! -f "${REPO_ROOT}/.env" && ! -f "${REPO_ROOT}/.dev.vars" ]]; then
-  echo "FAIL: no Supabase env file at repo root"
-  errors=$((errors + 1))
+if require_repo_env; then
+  echo "OK: Supabase env has SUPABASE_URL and SUPABASE_ANON_KEY (credentials not printed)"
 else
-  echo "OK: Supabase env file present (credentials not printed)"
+  echo "FAIL: Supabase env validation failed"
+  errors=$((errors + 1))
 fi
 
 if [[ "${errors}" -gt 0 ]]; then

@@ -11,6 +11,8 @@ source "${SCRIPT_DIR}/common.sh"
 require_repo_env
 
 RUN_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
+validate_run_id "${RUN_ID}"
+
 HOST="${VERIFY_HOST:-${DEFAULT_HOST}}"
 PORT="${VERIFY_PORT:-${DEFAULT_PORT}}"
 RUN_DIR="${RUNS_DIR}/${RUN_ID}"
@@ -23,7 +25,7 @@ mkdir -p "${RUN_DIR}" "${ARTIFACT_DIR}"
 
 if [[ -f "${PID_FILE}" ]]; then
   old_pid="$(tr -d '[:space:]' <"${PID_FILE}")"
-  if [[ -n "${old_pid}" ]] && kill -0 "${old_pid}" 2>/dev/null; then
+  if [[ -n "${old_pid}" ]] && pid_matches_run "${old_pid}" "${HOST}" "${PORT}"; then
     echo "Run ${RUN_ID} already has a live process (pid ${old_pid}). Refuse to double-launch." >&2
     echo "Use bin/cleanup ${RUN_ID} first, or pick a new RUN_ID." >&2
     exit 1
@@ -118,17 +120,20 @@ if [[ -n "${listener_pid}" ]]; then
   echo "${listener_pid}" >"${PID_FILE}"
 fi
 
-cat >"${RUN_DIR}/env.sh" <<EOF
-export RUN_ID='${RUN_ID}'
-export HOST='${HOST}'
-export PORT='${PORT}'
-export URL='${URL}'
-export PID_FILE='${PID_FILE}'
-export LOG_FILE='${LOG_FILE}'
-export ARTIFACT_DIR='${ARTIFACT_DIR}'
-export REPO_ROOT='${REPO_ROOT}'
-export TITLE_PREFIX="[verify-${RUN_ID}]"
-EOF
+TITLE_PREFIX="[verify-${RUN_ID}]"
+
+# Persist with shell-safe quoting so sourcing cannot inject commands.
+{
+  printf 'export RUN_ID=%q\n' "${RUN_ID}"
+  printf 'export HOST=%q\n' "${HOST}"
+  printf 'export PORT=%q\n' "${PORT}"
+  printf 'export URL=%q\n' "${URL}"
+  printf 'export PID_FILE=%q\n' "${PID_FILE}"
+  printf 'export LOG_FILE=%q\n' "${LOG_FILE}"
+  printf 'export ARTIFACT_DIR=%q\n' "${ARTIFACT_DIR}"
+  printf 'export REPO_ROOT=%q\n' "${REPO_ROOT}"
+  printf 'export TITLE_PREFIX=%q\n' "${TITLE_PREFIX}"
+} >"${RUN_DIR}/env.sh"
 
 echo "${RUN_ID}" >"${RUNS_DIR}/CURRENT"
 
@@ -138,5 +143,5 @@ echo "  URL=${URL}"
 echo "  PID=$(tr -d '[:space:]' <"${PID_FILE}")"
 echo "  LOG=${LOG_FILE}"
 echo "  ARTIFACTS=${ARTIFACT_DIR}"
-echo "  TITLE_PREFIX=[verify-${RUN_ID}]"
+echo "  TITLE_PREFIX=${TITLE_PREFIX}"
 echo "Ready when: curl -fsS ${URL}/ | grep -q 'Lịch Âm'"

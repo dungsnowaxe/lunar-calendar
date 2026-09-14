@@ -10,6 +10,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 RUN_DIR="$(resolve_run_dir "${1:-}")"
 RUN_ID="$(basename "${RUN_DIR}")"
+validate_run_id "${RUN_ID}"
 
 if [[ ! -f "${RUN_DIR}/env.sh" ]]; then
   echo "No env.sh in ${RUN_DIR}; nothing to clean." >&2
@@ -19,31 +20,51 @@ fi
 # shellcheck disable=SC1091
 source "${RUN_DIR}/env.sh"
 
-if [[ -f "${PID_FILE}" ]]; then
-  pid="$(tr -d '[:space:]' <"${PID_FILE}")"
-  if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
-    # Kill the process group leader we started; fall back to the listener PID.
-    kill "${pid}" 2>/dev/null || true
-    for _ in $(seq 1 20); do
-      if ! kill -0 "${pid}" 2>/dev/null; then
-        break
-      fi
-      sleep 0.25
-    done
-    if kill -0 "${pid}" 2>/dev/null; then
-      kill -9 "${pid}" 2>/dev/null || true
-    fi
-    echo "Stopped pid ${pid}"
-  else
-    echo "PID ${pid:-unknown} already stopped"
+stop_matching_pid() {
+  local pid="$1"
+  if [[ -z "${pid}" ]]; then
+    return 0
   fi
+  if ! kill -0 "${pid}" 2>/dev/null; then
+    echo "PID ${pid} already stopped"
+    return 0
+  fi
+  if ! pid_matches_run "${pid}" "${HOST}" "${PORT}"; then
+    echo "Refusing to kill pid ${pid}: command line does not match this run's --host ${HOST} --port ${PORT}" >&2
+    return 1
+  fi
+  kill "${pid}" 2>/dev/null || true
+  for _ in $(seq 1 20); do
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      break
+    fi
+    sleep 0.25
+  done
+  if kill -0 "${pid}" 2>/dev/null; then
+    if pid_matches_run "${pid}" "${HOST}" "${PORT}"; then
+      kill -9 "${pid}" 2>/dev/null || true
+    else
+      echo "Refusing SIGKILL for pid ${pid}: identity no longer matches" >&2
+      return 1
+    fi
+  fi
+  echo "Stopped pid ${pid}"
+}
+
+if [[ -f "${PID_FILE}" ]]; then
+  recorded_pid="$(tr -d '[:space:]' <"${PID_FILE}")"
+  stop_matching_pid "${recorded_pid}" || true
 fi
 
-# If something else still owns our port (child re-exec), kill only that listener.
-if [[ -n "${PORT:-}" ]]; then
+# Only stop leftover listeners that still fingerprint as this run's Vite.
+if [[ -n "${PORT:-}" && -n "${HOST:-}" ]]; then
   for listener_pid in $(lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN -t 2>/dev/null || true); do
-    echo "Stopping leftover listener pid ${listener_pid} on port ${PORT}"
-    kill "${listener_pid}" 2>/dev/null || true
+    if pid_matches_run "${listener_pid}" "${HOST}" "${PORT}"; then
+      echo "Stopping leftover matching listener pid ${listener_pid} on ${HOST}:${PORT}"
+      stop_matching_pid "${listener_pid}" || true
+    else
+      echo "Leaving pid ${listener_pid} on port ${PORT} (does not match this run's Vite fingerprint)"
+    fi
   done
 fi
 
