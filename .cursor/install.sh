@@ -25,10 +25,15 @@ export PATH="$(dirname "$(nvm which 24)"):$PATH"
 echo "node $(node -v)"
 
 # --- Docker (only used at runtime by the local Supabase stack). ---
+# Run apt fully non-interactively and keep existing conffiles, otherwise the
+# fuse3 postinst stops on an /etc/fuse.conf prompt and fails the build.
 if ! command -v docker >/dev/null 2>&1; then
   echo "Installing Docker..."
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq docker.io fuse-overlayfs uidmap iptables
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+    -o Dpkg::Options::=--force-confdef \
+    -o Dpkg::Options::=--force-confold \
+    docker.io fuse-overlayfs uidmap iptables
 fi
 
 # --- Supabase CLI. ---
