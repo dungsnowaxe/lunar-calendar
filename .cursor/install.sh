@@ -36,13 +36,18 @@ if ! command -v docker >/dev/null 2>&1; then
     docker.io fuse-overlayfs uidmap iptables
 fi
 
-# --- Supabase CLI. ---
+# --- Supabase CLI (pinned version + checksum-verified for a reproducible,
+#     integrity-checked bootstrap instead of an unverified `latest`). ---
+SUPABASE_CLI_VERSION="2.117.0"
 if ! command -v supabase >/dev/null 2>&1; then
-  echo "Installing Supabase CLI..."
+  echo "Installing Supabase CLI v${SUPABASE_CLI_VERSION}..."
   ARCH="$(dpkg --print-architecture)"
-  curl -fsSL "https://github.com/supabase/cli/releases/latest/download/supabase_linux_${ARCH}.tar.gz" \
-    -o /tmp/supabase.tar.gz
-  tar -xzf /tmp/supabase.tar.gz -C /tmp
+  base="https://github.com/supabase/cli/releases/download/v${SUPABASE_CLI_VERSION}"
+  tarball="supabase_${SUPABASE_CLI_VERSION}_linux_${ARCH}.tar.gz"
+  curl -fsSL "${base}/${tarball}" -o "/tmp/${tarball}"
+  curl -fsSL "${base}/checksums.txt" -o /tmp/supabase_checksums.txt
+  ( cd /tmp && grep " ${tarball}\$" supabase_checksums.txt | sha256sum -c - )
+  tar -xzf "/tmp/${tarball}" -C /tmp supabase
   sudo mv /tmp/supabase /usr/local/bin/supabase
 fi
 
@@ -57,17 +62,25 @@ pnpm install --frozen-lockfile
 LOCAL_SUPABASE_URL="http://127.0.0.1:54321"
 LOCAL_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
 
-write_env() {
-  local target="$1"
-  cat > "$target" <<EOF
-SUPABASE_URL=$LOCAL_SUPABASE_URL
-SUPABASE_ANON_KEY=$LOCAL_ANON_KEY
-EOF
+# Set KEY=VALUE in an env file, replacing any existing line for that key and
+# leaving other entries untouched. Existence of the file is not treated as
+# "already configured": a stale .env / .dev.vars (e.g. left over from a hosted
+# setup or a reused workspace) is corrected so the app always targets the
+# bundled local stack.
+set_env_var() {
+  local file="$1" key="$2" value="$3"
+  touch "$file"
+  if grep -q "^${key}=" "$file"; then
+    grep -v "^${key}=" "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+  fi
+  printf '%s=%s\n' "$key" "$value" >> "$file"
 }
 
 # Repo-root .env is read by vite.config.ts; apps/web/.dev.vars is read by the
 # Cloudflare workerd runtime that runs the TanStack Start server functions.
-[ -f .env ] || write_env .env
-[ -f apps/web/.dev.vars ] || write_env apps/web/.dev.vars
+for envfile in .env apps/web/.dev.vars; do
+  set_env_var "$envfile" SUPABASE_URL "$LOCAL_SUPABASE_URL"
+  set_env_var "$envfile" SUPABASE_ANON_KEY "$LOCAL_ANON_KEY"
+done
 
 echo "install.sh: done"
