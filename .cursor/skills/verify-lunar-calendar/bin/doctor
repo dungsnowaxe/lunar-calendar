@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Read-only health check for a verification instance.
+# Usage: bin/doctor [RUN_ID]
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/common.sh"
+
+load_run_env "${1:-}"
+
+errors=0
+
+echo "doctor: RUN_ID=${RUN_ID}"
+echo "doctor: URL=${URL}"
+
+if [[ ! -f "${PID_FILE}" ]]; then
+  echo "FAIL: missing PID file ${PID_FILE}"
+  errors=$((errors + 1))
+else
+  pid="$(tr -d '[:space:]' <"${PID_FILE}")"
+  if kill -0 "${pid}" 2>/dev/null; then
+    echo "OK: process ${pid} is alive"
+  else
+    echo "FAIL: process ${pid} is not running"
+    errors=$((errors + 1))
+  fi
+fi
+
+listener="$(lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN 2>/dev/null || true)"
+if [[ -z "${listener}" ]]; then
+  echo "FAIL: nothing listening on ${HOST}:${PORT}"
+  errors=$((errors + 1))
+else
+  echo "OK: port ${PORT} has a listener"
+  echo "${listener}" | sed 's/^/  /'
+fi
+
+html="$(curl -fsS "${URL}/" 2>/dev/null || true)"
+if [[ -z "${html}" ]]; then
+  echo "FAIL: GET ${URL}/ did not return a body"
+  errors=$((errors + 1))
+elif ! grep -q 'Lịch Âm' <<<"${html}"; then
+  echo "FAIL: home HTML missing brand marker 'Lịch Âm'"
+  errors=$((errors + 1))
+else
+  echo "OK: home HTML contains brand 'Lịch Âm'"
+fi
+
+if ! grep -q 'lang="vi"' <<<"${html}"; then
+  echo "FAIL: home HTML missing lang=\"vi\""
+  errors=$((errors + 1))
+else
+  echo "OK: document language is Vietnamese"
+fi
+
+events_code="$(curl -s -o /dev/null -w '%{http_code}' "${URL}/su-kien" || echo 000)"
+if [[ "${events_code}" != "200" ]]; then
+  echo "FAIL: GET ${URL}/su-kien returned ${events_code}"
+  errors=$((errors + 1))
+else
+  echo "OK: /su-kien returns 200"
+fi
+
+if [[ ! -f "${REPO_ROOT}/.env" && ! -f "${REPO_ROOT}/.dev.vars" ]]; then
+  echo "FAIL: no Supabase env file at repo root"
+  errors=$((errors + 1))
+else
+  echo "OK: Supabase env file present (credentials not printed)"
+fi
+
+if [[ "${errors}" -gt 0 ]]; then
+  echo "doctor: FAILED (${errors} check(s))"
+  exit 1
+fi
+
+echo "doctor: PASSED"

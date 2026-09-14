@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# Launch Lịch Âm for verification on an isolated port.
+# Usage: bin/launch [RUN_ID]
+# Env: VERIFY_PORT (default 4317), VERIFY_HOST (default 127.0.0.1)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/common.sh"
+
+require_repo_env
+
+RUN_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
+HOST="${VERIFY_HOST:-${DEFAULT_HOST}}"
+PORT="${VERIFY_PORT:-${DEFAULT_PORT}}"
+RUN_DIR="${RUNS_DIR}/${RUN_ID}"
+ARTIFACT_DIR="${ARTIFACTS_DIR}/${RUN_ID}"
+PID_FILE="${RUN_DIR}/server.pid"
+LOG_FILE="${RUN_DIR}/server.log"
+URL="http://${HOST}:${PORT}"
+
+mkdir -p "${RUN_DIR}" "${ARTIFACT_DIR}"
+
+if [[ -f "${PID_FILE}" ]]; then
+  old_pid="$(tr -d '[:space:]' <"${PID_FILE}")"
+  if [[ -n "${old_pid}" ]] && kill -0 "${old_pid}" 2>/dev/null; then
+    echo "Run ${RUN_ID} already has a live process (pid ${old_pid}). Refuse to double-launch." >&2
+    echo "Use bin/cleanup ${RUN_ID} first, or pick a new RUN_ID." >&2
+    exit 1
+  fi
+fi
+
+if lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "Port ${PORT} is already in use. Set VERIFY_PORT to a free port." >&2
+  lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN >&2 || true
+  exit 1
+fi
+
+echo "Building @lunar/core…"
+(
+  cd "${REPO_ROOT}"
+  pnpm --filter @lunar/core build >/dev/null
+)
+
+# Fully detach Vite from this shell (Cursor/agent shells often reap children
+# when the foreground command exits). Double-fork via Python so the server
+# is not in our process group.
+python3 - "${REPO_ROOT}" "${HOST}" "${PORT}" "${LOG_FILE}" "${PID_FILE}" <<'PY'
+import os, sys, time
+
+repo, host, port, log_file, pid_file = sys.argv[1:6]
+
+if os.fork() > 0:
+    # Parent of first fork: wait briefly for pid file then exit.
+    for _ in range(50):
+        if os.path.exists(pid_file):
+            break
+        time.sleep(0.1)
+    sys.exit(0)
+
+os.setsid()
+if os.fork() > 0:
+    sys.exit(0)
+
+os.chdir(repo)
+os.environ["PATH"] = os.environ.get("PATH", "")
+stdin = open("/dev/null", "r")
+stdout = open(log_file, "a", buffering=1)
+stderr = open(log_file, "a", buffering=1)
+os.dup2(stdin.fileno(), 0)
+os.dup2(stdout.fileno(), 1)
+os.dup2(stderr.fileno(), 2)
+
+# Record the daemon PID (this process) before exec replaces us with pnpm/vite.
+with open(pid_file, "w", encoding="utf-8") as f:
+    f.write(str(os.getpid()))
+
+os.execvp(
+    "pnpm",
+    [
+        "pnpm",
+        "--filter",
+        "web",
+        "exec",
+        "vite",
+        "dev",
+        "--host",
+        host,
+        "--port",
+        port,
+        "--strictPort",
+    ],
+)
+PY
+
+ready=0
+for _ in $(seq 1 60); do
+  if curl -fsS "${URL}/" >/dev/null 2>&1; then
+    ready=1
+    break
+  fi
+  sleep 0.5
+done
+
+if [[ "${ready}" -ne 1 ]]; then
+  echo "Server did not become ready at ${URL} within 30s." >&2
+  echo "---- ${LOG_FILE} (tail) ----" >&2
+  tail -n 40 "${LOG_FILE}" >&2 || true
+  if [[ -f "${PID_FILE}" ]]; then
+    kill "$(tr -d '[:space:]' <"${PID_FILE}")" 2>/dev/null || true
+  fi
+  exit 1
+fi
+
+# Prefer the TCP listener PID (vite may spawn children under pnpm).
+listener_pid="$(lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN -t | head -n 1 || true)"
+if [[ -n "${listener_pid}" ]]; then
+  echo "${listener_pid}" >"${PID_FILE}"
+fi
+
+cat >"${RUN_DIR}/env.sh" <<EOF
+export RUN_ID='${RUN_ID}'
+export HOST='${HOST}'
+export PORT='${PORT}'
+export URL='${URL}'
+export PID_FILE='${PID_FILE}'
+export LOG_FILE='${LOG_FILE}'
+export ARTIFACT_DIR='${ARTIFACT_DIR}'
+export REPO_ROOT='${REPO_ROOT}'
+export TITLE_PREFIX="[verify-${RUN_ID}]"
+EOF
+
+echo "${RUN_ID}" >"${RUNS_DIR}/CURRENT"
+
+echo "Launched Lịch Âm verification instance"
+echo "  RUN_ID=${RUN_ID}"
+echo "  URL=${URL}"
+echo "  PID=$(tr -d '[:space:]' <"${PID_FILE}")"
+echo "  LOG=${LOG_FILE}"
+echo "  ARTIFACTS=${ARTIFACT_DIR}"
+echo "  TITLE_PREFIX=[verify-${RUN_ID}]"
+echo "Ready when: curl -fsS ${URL}/ | grep -q 'Lịch Âm'"

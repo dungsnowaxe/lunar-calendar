@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Tear down the verification instance started by bin/launch.
+# Does NOT delete proof artifacts under artifacts/<RUN_ID>/.
+# Usage: bin/cleanup [RUN_ID]
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/common.sh"
+
+RUN_DIR="$(resolve_run_dir "${1:-}")"
+RUN_ID="$(basename "${RUN_DIR}")"
+
+if [[ ! -f "${RUN_DIR}/env.sh" ]]; then
+  echo "No env.sh in ${RUN_DIR}; nothing to clean." >&2
+  exit 0
+fi
+
+# shellcheck disable=SC1091
+source "${RUN_DIR}/env.sh"
+
+if [[ -f "${PID_FILE}" ]]; then
+  pid="$(tr -d '[:space:]' <"${PID_FILE}")"
+  if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
+    # Kill the process group leader we started; fall back to the listener PID.
+    kill "${pid}" 2>/dev/null || true
+    for _ in $(seq 1 20); do
+      if ! kill -0 "${pid}" 2>/dev/null; then
+        break
+      fi
+      sleep 0.25
+    done
+    if kill -0 "${pid}" 2>/dev/null; then
+      kill -9 "${pid}" 2>/dev/null || true
+    fi
+    echo "Stopped pid ${pid}"
+  else
+    echo "PID ${pid:-unknown} already stopped"
+  fi
+fi
+
+# If something else still owns our port (child re-exec), kill only that listener.
+if [[ -n "${PORT:-}" ]]; then
+  for listener_pid in $(lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN -t 2>/dev/null || true); do
+    echo "Stopping leftover listener pid ${listener_pid} on port ${PORT}"
+    kill "${listener_pid}" 2>/dev/null || true
+  done
+fi
+
+if [[ -f "${RUNS_DIR}/CURRENT" ]]; then
+  current="$(tr -d '[:space:]' <"${RUNS_DIR}/CURRENT")"
+  if [[ "${current}" == "${RUN_ID}" ]]; then
+    rm -f "${RUNS_DIR}/CURRENT"
+  fi
+fi
+
+echo "Cleanup complete for RUN_ID=${RUN_ID}"
+echo "Artifacts retained at: ${ARTIFACT_DIR:-${ARTIFACTS_DIR}/${RUN_ID}}"
