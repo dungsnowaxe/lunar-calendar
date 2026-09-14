@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Tear down the verification instance started by bin/launch.
+# Does NOT delete proof artifacts under artifacts/<RUN_ID>/.
+# Usage: bin/cleanup [RUN_ID]
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/common.sh"
+
+RUN_DIR="$(resolve_run_dir "${1:-}")"
+RUN_ID="$(basename "${RUN_DIR}")"
+validate_run_id "${RUN_ID}"
+
+if [[ ! -f "${RUN_DIR}/env.sh" ]]; then
+  echo "No env.sh in ${RUN_DIR}; nothing to clean." >&2
+  exit 0
+fi
+
+# shellcheck disable=SC1091
+source "${RUN_DIR}/env.sh"
+
+stop_matching_pid() {
+  local pid="$1"
+  if [[ -z "${pid}" ]]; then
+    return 0
+  fi
+  if ! kill -0 "${pid}" 2>/dev/null; then
+    echo "PID ${pid} already stopped"
+    return 0
+  fi
+  if ! pid_matches_run "${pid}" "${HOST}" "${PORT}"; then
+    echo "Refusing to kill pid ${pid}: command line does not match this run's --host ${HOST} --port ${PORT}" >&2
+    return 1
+  fi
+  kill "${pid}" 2>/dev/null || true
+  for _ in $(seq 1 20); do
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      break
+    fi
+    sleep 0.25
+  done
+  if kill -0 "${pid}" 2>/dev/null; then
+    if pid_matches_run "${pid}" "${HOST}" "${PORT}"; then
+      kill -9 "${pid}" 2>/dev/null || true
+    else
+      echo "Refusing SIGKILL for pid ${pid}: identity no longer matches" >&2
+      return 1
+    fi
+  fi
+  echo "Stopped pid ${pid}"
+}
+
+if [[ -f "${PID_FILE}" ]]; then
+  recorded_pid="$(tr -d '[:space:]' <"${PID_FILE}")"
+  stop_matching_pid "${recorded_pid}" || true
+fi
+
+# Only stop leftover listeners that still fingerprint as this run's Vite.
+if [[ -n "${PORT:-}" && -n "${HOST:-}" ]]; then
+  for listener_pid in $(lsof -nP -iTCP:"${PORT}" -sTCP:LISTEN -t 2>/dev/null || true); do
+    if pid_matches_run "${listener_pid}" "${HOST}" "${PORT}"; then
+      echo "Stopping leftover matching listener pid ${listener_pid} on ${HOST}:${PORT}"
+      stop_matching_pid "${listener_pid}" || true
+    else
+      echo "Leaving pid ${listener_pid} on port ${PORT} (does not match this run's Vite fingerprint)"
+    fi
+  done
+fi
+
+if [[ -f "${RUNS_DIR}/CURRENT" ]]; then
+  current="$(tr -d '[:space:]' <"${RUNS_DIR}/CURRENT")"
+  if [[ "${current}" == "${RUN_ID}" ]]; then
+    rm -f "${RUNS_DIR}/CURRENT"
+  fi
+fi
+
+echo "Cleanup complete for RUN_ID=${RUN_ID}"
+echo "Artifacts retained at: ${ARTIFACT_DIR:-${ARTIFACTS_DIR}/${RUN_ID}}"

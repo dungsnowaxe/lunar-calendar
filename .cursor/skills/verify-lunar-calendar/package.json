@@ -1,0 +1,8 @@
+{
+  "name": "verify-lunar-calendar-helpers",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}
