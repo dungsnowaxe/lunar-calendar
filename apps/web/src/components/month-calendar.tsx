@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { useMemo, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import {
   canChiDay,
   canChiMonth,
@@ -12,66 +12,66 @@ import {
   solarToLunar,
   solarToday,
   type SolarDate,
-} from '@lunar/core'
-import { monthGrid, shiftMonth } from '~/lib/calendar-grid'
-import { EventColorDot } from '~/lib/event-colors'
+} from "@lunar/core";
+import { monthGrid, shiftMonth } from "~/lib/calendar-grid";
+import { EventColorDot } from "~/lib/event-colors";
 import {
   CALENDAR_HEADERS,
   lunarLongLabel,
   lunarShortLabel,
   monthTitle,
   weekdayLong,
-} from '~/lib/labels'
-import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import type { MemorialEvent } from '~/server/events'
-import { cn } from '~/lib/utils'
+} from "~/lib/labels";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import type { MemorialEvent } from "~/server/events";
+import { cn } from "~/lib/utils";
 
 interface MonthCalendarProps {
-  events: MemorialEvent[]
+  events: MemorialEvent[];
 }
 
 export function MonthCalendar({ events }: MonthCalendarProps) {
-  const today = useMemo(() => solarToday(), [])
-  const [cursor, setCursor] = useState({ year: today.year, month: today.month })
-  const [selected, setSelected] = useState<SolarDate>(today)
+  const today = useMemo(() => solarToday(), []);
+  const [cursor, setCursor] = useState({ year: today.year, month: today.month });
+  const [selected, setSelected] = useState<SolarDate>(today);
 
-  const cells = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor])
+  const cells = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor]);
   const lunarByJdn = useMemo(() => {
-    const map = new Map<number, ReturnType<typeof solarToLunar>>()
+    const map = new Map<number, ReturnType<typeof solarToLunar>>();
     for (const cell of cells) {
-      map.set(solarToJdn(cell.date), solarToLunar(cell.date))
+      map.set(solarToJdn(cell.date), solarToLunar(cell.date));
     }
-    return map
-  }, [cells])
+    return map;
+  }, [cells]);
 
   // Occurrences of every event inside the visible month (with a one year
   // margin on each side to catch lunar months that straddle solar years).
   const eventsByJdn = useMemo(() => {
-    const map = new Map<number, MemorialEvent[]>()
+    const map = new Map<number, MemorialEvent[]>();
     for (const event of events) {
-      const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth }
+      const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth };
       for (let lunarYear = cursor.year - 1; lunarYear <= cursor.year + 1; lunarYear++) {
-        const occurrence = occurrenceInLunarYear(rule, lunarYear)
-        if (!occurrence) continue
-        const jdn = solarToJdn(occurrence)
-        const dayEvents = map.get(jdn)
-        if (dayEvents) dayEvents.push(event)
-        else map.set(jdn, [event])
+        const occurrence = occurrenceInLunarYear(rule, lunarYear);
+        if (!occurrence) continue;
+        const jdn = solarToJdn(occurrence);
+        const dayEvents = map.get(jdn);
+        if (dayEvents) dayEvents.push(event);
+        else map.set(jdn, [event]);
       }
     }
-    return map
-  }, [events, cursor])
+    return map;
+  }, [events, cursor]);
 
-  const selectedLunar = solarToLunar(selected)
+  const selectedLunar = solarToLunar(selected);
   const selectedEvents = events.filter((event) => {
-    const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth }
+    const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth };
     for (let lunarYear = selected.year - 1; lunarYear <= selected.year + 1; lunarYear++) {
-      const occurrence = occurrenceInLunarYear(rule, lunarYear)
-      if (occurrence && compareSolar(occurrence, selected) === 0) return true
+      const occurrence = occurrenceInLunarYear(rule, lunarYear);
+      if (occurrence && compareSolar(occurrence, selected) === 0) return true;
     }
-    return false
-  })
+    return false;
+  });
 
   return (
     <Card>
@@ -93,8 +93,8 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                setCursor({ year: today.year, month: today.month })
-                setSelected(today)
+                setCursor({ year: today.year, month: today.month });
+                setSelected(today);
               }}
             >
               Hôm nay
@@ -137,9 +137,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
           </p>
           <p className="text-muted-foreground">
             Âm lịch: {lunarLongLabel(selectedLunar)}, ngày {canChiDay(selected)}
-            {selectedLunar.isLeapMonth
-              ? ''
-              : `, tháng ${canChiMonth(selectedLunar)}`}
+            {selectedLunar.isLeapMonth ? "" : `, tháng ${canChiMonth(selectedLunar)}`}
           </p>
           {selectedEvents.length > 0 && (
             <ul className="mt-2 flex flex-col gap-1">
@@ -154,7 +152,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function CalendarCellButton({
@@ -165,16 +163,16 @@ function CalendarCellButton({
   dayEvents,
   onSelect,
 }: {
-  cell: { date: SolarDate; inMonth: boolean }
-  lunar: ReturnType<typeof solarToLunar>
-  isToday: boolean
-  isSelected: boolean
-  dayEvents: MemorialEvent[]
-  onSelect: () => void
+  cell: { date: SolarDate; inMonth: boolean };
+  lunar: ReturnType<typeof solarToLunar>;
+  isToday: boolean;
+  isSelected: boolean;
+  dayEvents: MemorialEvent[];
+  onSelect: () => void;
 }) {
-  const dayOfWeek = solarDayOfWeek(cell.date)
-  const isFullMoon = lunar.day === 15
-  const isNewMoon = lunar.day === 1
+  const dayOfWeek = solarDayOfWeek(cell.date);
+  const isFullMoon = lunar.day === 15;
+  const isNewMoon = lunar.day === 1;
 
   return (
     <button
@@ -182,26 +180,26 @@ function CalendarCellButton({
       onClick={onSelect}
       aria-pressed={isSelected}
       className={cn(
-        'flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-sm transition-colors',
-        'hover:bg-muted',
-        !cell.inMonth && 'text-muted-foreground/50',
-        dayOfWeek === 0 && cell.inMonth && 'text-red-600 dark:text-red-400',
-        isSelected && 'bg-primary text-primary-foreground hover:bg-primary/90',
-        isToday && !isSelected && 'ring-2 ring-primary ring-inset',
+        "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-sm transition-colors",
+        "hover:bg-muted",
+        !cell.inMonth && "text-muted-foreground/50",
+        dayOfWeek === 0 && cell.inMonth && "text-red-600 dark:text-red-400",
+        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
+        isToday && !isSelected && "ring-2 ring-primary ring-inset",
       )}
     >
       <span
         className={cn(
-          'leading-none font-medium',
-          (isNewMoon || isFullMoon) && cell.inMonth && !isSelected && 'text-primary',
+          "leading-none font-medium",
+          (isNewMoon || isFullMoon) && cell.inMonth && !isSelected && "text-primary",
         )}
       >
         {cell.date.day}
       </span>
       <span
         className={cn(
-          'text-[10px] leading-none',
-          isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground',
+          "text-[10px] leading-none",
+          isSelected ? "text-primary-foreground/80" : "text-muted-foreground",
         )}
       >
         {lunar.day === 1 ? lunarShortLabel(lunar) : lunar.day}
@@ -212,5 +210,5 @@ function CalendarCellButton({
         ))}
       </span>
     </button>
-  )
+  );
 }

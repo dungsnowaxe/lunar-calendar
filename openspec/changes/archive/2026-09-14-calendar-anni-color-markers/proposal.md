@@ -1,6 +1,6 @@
 ## Why
 
-When scanning the calendar for upcoming death anniversaries (ngày giỗ), every event looks the same — a single primary-colored dot on the date and identical styling in the upcoming list. Users must tap each day or read every list item to know *whose* anniversary it is. A shared color language between the calendar and the upcoming-events sidebar would let users spot marked days at a glance and immediately connect them to a person.
+When scanning the calendar for upcoming death anniversaries (ngày giỗ), every event looks the same — a single primary-colored dot on the date and identical styling in the upcoming list. Users must tap each day or read every list item to know _whose_ anniversary it is. A shared color language between the calendar and the upcoming-events sidebar would let users spot marked days at a glance and immediately connect them to a person.
 
 ## What Changes
 

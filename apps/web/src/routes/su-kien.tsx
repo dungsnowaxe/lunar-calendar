@@ -1,17 +1,13 @@
-import { useState } from 'react'
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  Delete02Icon,
-  Edit02Icon,
-  PlusSignIcon,
-} from '@hugeicons/core-free-icons'
-import { formatSolar, nextOccurrences, solarToday } from '@lunar/core'
-import { deleteEventFn, listEventsFn, type MemorialEvent } from '~/server/events'
-import { EventFormOverlay } from '~/components/event-form-overlay'
-import { daysBetween, daysUntilLabel, eventRuleLabel } from '~/lib/labels'
-import { memorialEventIcon } from '~/lib/memorial'
+import { useState } from "react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon, Edit02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { formatSolar, nextOccurrences, solarToday } from "@lunar/core";
+import { deleteEventFn, listEventsFn, type MemorialEvent } from "~/server/events";
+import { EventFormOverlay } from "~/components/event-form-overlay";
+import { daysBetween, daysUntilLabel, eventRuleLabel } from "~/lib/labels";
+import { memorialEventIcon } from "~/lib/memorial";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +17,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '~/components/ui/alert-dialog'
-import { Button } from '~/components/ui/button'
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
 import {
   Card,
   CardAction,
@@ -30,21 +26,21 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '~/components/ui/card'
+} from "~/components/ui/card";
 
-export const Route = createFileRoute('/su-kien')({
+export const Route = createFileRoute("/su-kien")({
   loader: () => listEventsFn(),
   component: EventsPage,
-})
+});
 
 function EventsPage() {
-  const router = useRouter()
-  const events = Route.useLoaderData()
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<MemorialEvent | undefined>(undefined)
+  const router = useRouter();
+  const events = Route.useLoaderData();
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<MemorialEvent | undefined>(undefined);
 
   function refresh() {
-    return router.invalidate()
+    return router.invalidate();
   }
 
   return (
@@ -58,15 +54,11 @@ function EventsPage() {
         </div>
         <Button
           onClick={() => {
-            setEditing(undefined)
-            setFormOpen(true)
+            setEditing(undefined);
+            setFormOpen(true);
           }}
         >
-          <HugeiconsIcon
-            icon={PlusSignIcon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
+          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
           Thêm sự kiện
         </Button>
       </div>
@@ -85,15 +77,11 @@ function EventsPage() {
             <Button
               variant="outline"
               onClick={() => {
-                setEditing(undefined)
-                setFormOpen(true)
+                setEditing(undefined);
+                setFormOpen(true);
               }}
             >
-              <HugeiconsIcon
-                icon={PlusSignIcon}
-                strokeWidth={2}
-                data-icon="inline-start"
-              />
+              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
               Thêm sự kiện
             </Button>
           </CardContent>
@@ -105,8 +93,8 @@ function EventsPage() {
               key={event.id}
               event={event}
               onEdit={() => {
-                setEditing(event)
-                setFormOpen(true)
+                setEditing(event);
+                setFormOpen(true);
               }}
             />
           ))}
@@ -116,47 +104,41 @@ function EventsPage() {
       <EventFormOverlay
         open={formOpen}
         onOpenChange={(open) => {
-          setFormOpen(open)
-          if (!open) setEditing(undefined)
+          setFormOpen(open);
+          if (!open) setEditing(undefined);
         }}
         event={editing}
         onSaved={refresh}
       />
     </main>
-  )
+  );
 }
 
-function EventCard({
-  event,
-  onEdit,
-}: {
-  event: MemorialEvent
-  onEdit: () => void
-}) {
-  const router = useRouter()
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const today = solarToday()
+function EventCard({ event, onEdit }: { event: MemorialEvent; onEdit: () => void }) {
+  const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const today = solarToday();
   const upcoming = nextOccurrences(
     { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth },
     today,
     3,
-  )
+  );
 
   async function handleDelete() {
-    let result: { error?: string }
+    let result: { error?: string };
     try {
-      result = await deleteEventFn({ data: event.id })
+      result = await deleteEventFn({ data: event.id });
     } catch {
-      toast.error('Không thể kết nối máy chủ. Vui lòng thử lại.')
-      return
+      toast.error("Không thể kết nối máy chủ. Vui lòng thử lại.");
+      return;
     }
     if (result.error) {
-      toast.error(result.error)
-      return
+      toast.error(result.error);
+      return;
     }
-    toast.success(`Đã xóa "${event.title}"`)
-    setConfirmOpen(false)
-    await router.invalidate()
+    toast.success(`Đã xóa "${event.title}"`);
+    setConfirmOpen(false);
+    await router.invalidate();
   }
 
   return (
@@ -198,23 +180,19 @@ function EventCard({
         </p>
         <ul className="flex flex-wrap gap-2">
           {upcoming.map((date) => {
-            const days = daysBetween(today, date)
+            const days = daysBetween(today, date);
             return (
               <li
                 key={`${date.day}-${date.month}-${date.year}`}
                 className="rounded-xl bg-muted/60 px-2.5 py-1 text-xs"
               >
                 {formatSolar(date)}
-                <span className="ml-1.5 text-muted-foreground">
-                  ({daysUntilLabel(days)})
-                </span>
+                <span className="ml-1.5 text-muted-foreground">({daysUntilLabel(days)})</span>
               </li>
-            )
+            );
           })}
         </ul>
-        {event.notes && (
-          <p className="mt-3 text-sm text-muted-foreground">{event.notes}</p>
-        )}
+        {event.notes && <p className="mt-3 text-sm text-muted-foreground">{event.notes}</p>}
       </CardContent>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -222,18 +200,15 @@ function EventCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa sự kiện?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc muốn xóa "{event.title}"? Thao tác này không thể hoàn
-              tác.
+              Bạn có chắc muốn xóa "{event.title}"? Thao tác này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Giữ lại</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Xóa
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </Card>
-  )
+  );
 }

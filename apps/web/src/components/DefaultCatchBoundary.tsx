@@ -1,20 +1,18 @@
-import { Link, useLocation, useRouter } from '@tanstack/react-router'
-import type { ErrorComponentProps } from '@tanstack/react-router'
+import { Link, useLocation, useRouter } from "@tanstack/react-router";
+import type { ErrorComponentProps } from "@tanstack/react-router";
 
 export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
-  const router = useRouter()
+  const router = useRouter();
   const isRoot = useLocation({
-    select: (location) => location.pathname === '/',
-  })
+    select: (location) => location.pathname === "/",
+  });
 
-  console.error(error)
+  console.error(error);
 
   return (
     <div className="min-w-0 flex-1 p-4 flex flex-col items-center justify-center gap-6">
       <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="font-heading text-xl font-semibold">
-          Đã xảy ra lỗi!
-        </h1>
+        <h1 className="font-heading text-xl font-semibold">Đã xảy ra lỗi!</h1>
         <p className="max-w-xl rounded-xl bg-destructive/10 px-4 py-3 font-mono text-sm text-destructive">
           {error instanceof Error ? error.message : String(error)}
         </p>
@@ -22,7 +20,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
       <div className="flex gap-2 items-center flex-wrap">
         <button
           onClick={() => {
-            router.invalidate()
+            router.invalidate();
           }}
           className={`px-2 py-1 bg-gray-600 dark:bg-gray-700 rounded-sm text-white uppercase font-extrabold`}
         >
@@ -40,8 +38,8 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
             to="/"
             className={`px-2 py-1 bg-gray-600 dark:bg-gray-700 rounded-sm text-white uppercase font-extrabold`}
             onClick={(e) => {
-              e.preventDefault()
-              window.history.back()
+              e.preventDefault();
+              window.history.back();
             }}
           >
             Quay lại
@@ -49,5 +47,5 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -28,11 +28,11 @@ Requirements are defined in `specs/event-color-assignment`, `specs/calendar-even
 
 **Alternatives considered:**
 
-| Approach | Rejected because |
-|----------|------------------|
+| Approach                   | Rejected because                                         |
+| -------------------------- | -------------------------------------------------------- |
 | Array index in sorted list | Colors shift when a new event sorts before existing ones |
-| `Math.random()` on mount | Different color every reload |
-| DB `color_index` column | User opted out; adds migration for no UX gain |
+| `Math.random()` on mount   | Different color every reload                             |
+| DB `color_index` column    | User opted out; adds migration for no UX gain            |
 
 **Rationale:** UUID hash is stable, zero backend work, and identical across calendar + sidebar + any future surface.
 
@@ -52,20 +52,20 @@ style={{ backgroundColor: `var(--event-${index + 1})` }}
 
 **Palette (oklch):** twelve distinct hues (not strictly even spacing — neighboring warm hues were too similar). Light mode uses mid-high lightness (~0.60–0.70) so markers read as color, not ink, on white cards. Dark mode uses higher lightness (~0.78–0.84) with slightly reduced chroma.
 
-| Slot | Hue | Light (`:root`) | Dark (`.dark`) |
-|------|-----|-----------------|----------------|
-| 1 | 12 | `oklch(0.64 0.19 12)` | `oklch(0.78 0.14 12)` |
-| 2 | 150 | `oklch(0.62 0.16 150)` | `oklch(0.78 0.13 150)` |
-| 3 | 255 | `oklch(0.62 0.16 255)` | `oklch(0.80 0.12 255)` |
-| 4 | 305 | `oklch(0.64 0.15 305)` | `oklch(0.80 0.12 305)` |
-| 5 | 85 | `oklch(0.70 0.14 85)` | `oklch(0.84 0.12 85)` |
-| 6 | 195 | `oklch(0.62 0.12 195)` | `oklch(0.80 0.10 195)` |
-| 7 | 340 | `oklch(0.66 0.16 340)` | `oklch(0.82 0.12 340)` |
-| 8 | 115 | `oklch(0.60 0.13 115)` | `oklch(0.80 0.11 115)` |
-| 9 | 220 | `oklch(0.66 0.10 220)` | `oklch(0.82 0.09 220)` |
-| 10 | 280 | `oklch(0.60 0.14 280)` | `oklch(0.80 0.12 280)` |
-| 11 | 55 | `oklch(0.70 0.16 55)` | `oklch(0.82 0.13 55)` |
-| 12 | 125 | `oklch(0.66 0.15 125)` | `oklch(0.80 0.12 125)` |
+| Slot | Hue | Light (`:root`)        | Dark (`.dark`)         |
+| ---- | --- | ---------------------- | ---------------------- |
+| 1    | 12  | `oklch(0.64 0.19 12)`  | `oklch(0.78 0.14 12)`  |
+| 2    | 150 | `oklch(0.62 0.16 150)` | `oklch(0.78 0.13 150)` |
+| 3    | 255 | `oklch(0.62 0.16 255)` | `oklch(0.80 0.12 255)` |
+| 4    | 305 | `oklch(0.64 0.15 305)` | `oklch(0.80 0.12 305)` |
+| 5    | 85  | `oklch(0.70 0.14 85)`  | `oklch(0.84 0.12 85)`  |
+| 6    | 195 | `oklch(0.62 0.12 195)` | `oklch(0.80 0.10 195)` |
+| 7    | 340 | `oklch(0.66 0.16 340)` | `oklch(0.82 0.12 340)` |
+| 8    | 115 | `oklch(0.60 0.13 115)` | `oklch(0.80 0.11 115)` |
+| 9    | 220 | `oklch(0.66 0.10 220)` | `oklch(0.82 0.09 220)` |
+| 10   | 280 | `oklch(0.60 0.14 280)` | `oklch(0.80 0.12 280)` |
+| 11   | 55  | `oklch(0.70 0.16 55)`  | `oklch(0.82 0.13 55)`  |
+| 12   | 125 | `oklch(0.66 0.15 125)` | `oklch(0.80 0.12 125)` |
 
 ### 3. Shared module: `apps/web/src/lib/event-colors.tsx`
 
@@ -111,12 +111,12 @@ Month header: `flex` with `whitespace-nowrap` title (`text-sm sm:text-lg`) and `
 
 ## Risks / Trade-offs
 
-| Risk | Mitigation |
-|------|------------|
-| Hash collisions — two events share a slot | Acceptable with ≤12 events typical; 12 slots keep collision rate low; titles disambiguate on select |
-| Selected cell dots hard to see on primary bg | Keep saturated event colors; no extra ring |
-| More than 3–4 dots clutter a cell | Family scale makes this rare; in-flow row wraps with `gap-0.5` |
-| Color meaning not memorizable without legend | Left border on upcoming rows + calendar dots share the same slot; user selects day to confirm |
+| Risk                                         | Mitigation                                                                                          |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Hash collisions — two events share a slot    | Acceptable with ≤12 events typical; 12 slots keep collision rate low; titles disambiguate on select |
+| Selected cell dots hard to see on primary bg | Keep saturated event colors; no extra ring                                                          |
+| More than 3–4 dots clutter a cell            | Family scale makes this rare; in-flow row wraps with `gap-0.5`                                      |
+| Color meaning not memorizable without legend | Left border on upcoming rows + calendar dots share the same slot; user selects day to confirm       |
 
 ## Migration Plan
 

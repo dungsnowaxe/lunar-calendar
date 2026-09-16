@@ -11,7 +11,7 @@ export {
   solarDayOfWeek,
   formatSolar,
   type SolarDate,
-} from './solar.ts'
+} from "./solar.ts";
 
 export {
   leapMonthOf,
@@ -22,10 +22,6 @@ export {
   canChiDay,
   canChiMonth,
   type LunarDate,
-} from './lunar.ts'
+} from "./lunar.ts";
 
-export {
-  occurrenceInLunarYear,
-  nextOccurrences,
-  type MemorialRule,
-} from './occurrences.ts'
+export { occurrenceInLunarYear, nextOccurrences, type MemorialRule } from "./occurrences.ts";

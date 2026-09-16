@@ -1,35 +1,23 @@
-import { HugeiconsIcon } from '@hugeicons/react'
-import { PlusSignIcon } from '@hugeicons/core-free-icons'
-import {
-  formatSolar,
-  nextOccurrences,
-  solarToJdn,
-  solarToday,
-  type SolarDate,
-} from '@lunar/core'
-import { NumberTicker } from '~/components/ui/number-ticker'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
-import { eventColorVar } from '~/lib/event-colors'
-import { daysBetween, eventRuleLabel } from '~/lib/labels'
-import type { MemorialEvent } from '~/server/events'
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { formatSolar, nextOccurrences, solarToJdn, solarToday, type SolarDate } from "@lunar/core";
+import { NumberTicker } from "~/components/ui/number-ticker";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { eventColorVar } from "~/lib/event-colors";
+import { daysBetween, eventRuleLabel } from "~/lib/labels";
+import type { MemorialEvent } from "~/server/events";
 
 interface UpcomingEventsProps {
-  events: MemorialEvent[]
+  events: MemorialEvent[];
   /** How many occurrences to show. */
-  count?: number
-  onAdd: () => void
+  count?: number;
+  onAdd: () => void;
 }
 
 export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps) {
-  const today = solarToday()
+  const today = solarToday();
 
   const upcoming = events
     .map((event) => {
@@ -37,12 +25,12 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
         { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth },
         today,
         1,
-      )
-      return next ? { event, date: next } : null
+      );
+      return next ? { event, date: next } : null;
     })
     .filter((item): item is { event: MemorialEvent; date: SolarDate } => item !== null)
     .sort((a, b) => solarToJdn(a.date) - solarToJdn(b.date))
-    .slice(0, count)
+    .slice(0, count);
 
   return (
     <Card>
@@ -62,7 +50,7 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
           </p>
         )}
         {upcoming.map(({ event, date }) => {
-          const days = daysBetween(today, date)
+          const days = daysBetween(today, date);
           return (
             <div
               key={event.id}
@@ -88,9 +76,9 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
                 </span>
               )}
             </div>
-          )
+          );
         })}
       </CardContent>
     </Card>
-  )
+  );
 }

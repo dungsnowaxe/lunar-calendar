@@ -80,7 +80,14 @@ pnpm test        # run the lunar test suite
    ```sh
    pnpm dev       # http://localhost:3000
    pnpm build     # production build (also runs tsc)
+   pnpm lint      # oxlint (pnpm lint:fix to auto-fix)
+   pnpm fmt       # oxfmt (pnpm fmt:check to verify without writing)
    ```
+
+   Formatting and linting are enforced by a husky pre-commit hook
+   (lint-staged) and in CI. Editors should use the Oxc extension
+   (`.vscode/extensions.json`); vendored `hnd.ts` and generated
+   `routeTree.gen.ts` are excluded via `.oxfmtrc.json` / `.oxlintrc.json`.
 
 ## Features
 

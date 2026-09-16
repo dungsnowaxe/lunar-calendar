@@ -1,9 +1,9 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { toast } from 'sonner'
-import { formatSolar, nextOccurrences, solarToday } from '@lunar/core'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Delete02Icon, PlusSignIcon } from '@hugeicons/core-free-icons'
-import { Button } from '~/components/ui/button'
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { toast } from "sonner";
+import { formatSolar, nextOccurrences, solarToday } from "@lunar/core";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,16 +11,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '~/components/ui/dialog'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '~/components/ui/select'
+} from "~/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -28,68 +28,66 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from '~/components/ui/sheet'
-import { Textarea } from '~/components/ui/textarea'
-import { useIsDesktop } from '~/hooks/use-min-width'
-import { createEventsFn, updateEventFn } from '~/server/events'
+} from "~/components/ui/sheet";
+import { Textarea } from "~/components/ui/textarea";
+import { useIsDesktop } from "~/hooks/use-min-width";
+import { createEventsFn, updateEventFn } from "~/server/events";
 
 interface EventFormOverlayProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   /** When present the overlay edits this event instead of creating one. */
   event?: {
-    id: string
-    title: string
-    lunarDay: number
-    lunarMonth: number
-    notes: string | null
-  }
-  onSaved: () => void | Promise<void>
+    id: string;
+    title: string;
+    lunarDay: number;
+    lunarMonth: number;
+    notes: string | null;
+  };
+  onSaved: () => void | Promise<void>;
 }
 
 interface EventDraft {
-  key: string
-  title: string
-  lunarDay: string
-  lunarMonth: string
-  notes: string
+  key: string;
+  title: string;
+  lunarDay: string;
+  lunarMonth: string;
+  notes: string;
 }
 
-const DAYS = Array.from({ length: 30 }, (_, i) => String(i + 1))
-const MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1))
-const MAX_ENTRIES = 10
-const DEFAULT_DAY = '10'
-const DEFAULT_MONTH = '1'
+const DAYS = Array.from({ length: 30 }, (_, i) => String(i + 1));
+const MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const MAX_ENTRIES = 10;
+const DEFAULT_DAY = "10";
+const DEFAULT_MONTH = "1";
 
-const dayItems: Record<string, string> = Object.fromEntries(
-  DAYS.map((day) => [day, day]),
-)
+const dayItems: Record<string, string> = Object.fromEntries(DAYS.map((day) => [day, day]));
 const monthItems: Record<string, string> = Object.fromEntries(
   MONTHS.map((month) => [month, month]),
-)
+);
 
-let draftKey = 0
+let draftKey = 0;
 
 function emptyDraft(): EventDraft {
-  draftKey += 1
+  draftKey += 1;
   return {
     key: String(draftKey),
-    title: '',
+    title: "",
     lunarDay: DEFAULT_DAY,
     lunarMonth: DEFAULT_MONTH,
-    notes: '',
-  }
+    notes: "",
+  };
 }
 
-function draftFromEvent(event: NonNullable<EventFormOverlayProps['event']>): EventDraft {
-  draftKey += 1
+function draftFromEvent(event: NonNullable<EventFormOverlayProps["event"]>): EventDraft {
+  draftKey += 1;
   return {
     key: String(draftKey),
     title: event.title,
     lunarDay: String(event.lunarDay),
     lunarMonth: String(event.lunarMonth),
-    notes: event.notes ?? '',
-  }
+    notes: event.notes ?? "",
+  };
 }
 
 function toPayload(draft: EventDraft) {
@@ -98,123 +96,111 @@ function toPayload(draft: EventDraft) {
     lunarDay: Number(draft.lunarDay),
     lunarMonth: Number(draft.lunarMonth),
     notes: draft.notes || null,
-  }
+  };
 }
 
-export function EventFormOverlay({
-  open,
-  onOpenChange,
-  event,
-  onSaved,
-}: EventFormOverlayProps) {
-  const isDesktop = useIsDesktop()
-  const formId = useId()
-  const [entries, setEntries] = useState<EventDraft[]>(() => [emptyDraft()])
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const pendingRef = useRef(false)
-  const saveIdRef = useRef(0)
-  const isEdit = event != null
+export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFormOverlayProps) {
+  const isDesktop = useIsDesktop();
+  const formId = useId();
+  const [entries, setEntries] = useState<EventDraft[]>(() => [emptyDraft()]);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pendingRef = useRef(false);
+  const saveIdRef = useRef(0);
+  const isEdit = event != null;
 
   function setSavePending(next: boolean) {
-    pendingRef.current = next
-    setPending(next)
+    pendingRef.current = next;
+    setPending(next);
   }
 
   function resetForm() {
-    saveIdRef.current += 1
-    setEntries([emptyDraft()])
-    setSavePending(false)
-    setError(null)
+    saveIdRef.current += 1;
+    setEntries([emptyDraft()]);
+    setSavePending(false);
+    setError(null);
   }
 
   useEffect(() => {
-    if (!open) return
-    saveIdRef.current += 1
-    setEntries(event ? [draftFromEvent(event)] : [emptyDraft()])
-    setSavePending(false)
-    setError(null)
-  }, [open, event])
+    if (!open) return;
+    saveIdRef.current += 1;
+    // Re-seed the draft each time the dialog opens, for a new entry or a
+    // different existing event.
+    // oxlint-disable-next-line react/set-state-in-effect
+    setEntries(event ? [draftFromEvent(event)] : [emptyDraft()]);
+    setSavePending(false);
+    setError(null);
+  }, [open, event]);
 
-  function handleOpenChange(
-    next: boolean,
-    eventDetails?: { cancel: () => void },
-  ) {
+  function handleOpenChange(next: boolean, eventDetails?: { cancel: () => void }) {
     if (!next && pendingRef.current) {
-      eventDetails?.cancel()
-      return
+      eventDetails?.cancel();
+      return;
     }
-    if (!next) resetForm()
-    onOpenChange(next)
+    if (!next) resetForm();
+    onOpenChange(next);
   }
 
   function updateEntry(key: string, patch: Partial<EventDraft>) {
     setEntries((current) =>
       current.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)),
-    )
+    );
   }
 
   function addEntry() {
-    setEntries((current) =>
-      current.length >= MAX_ENTRIES ? current : [...current, emptyDraft()],
-    )
+    setEntries((current) => (current.length >= MAX_ENTRIES ? current : [...current, emptyDraft()]));
   }
 
   function removeEntry(key: string) {
     setEntries((current) =>
       current.length <= 1 ? current : current.filter((entry) => entry.key !== key),
-    )
+    );
   }
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    const saveId = ++saveIdRef.current
-    setSavePending(true)
-    setError(null)
+    e.preventDefault();
+    const saveId = ++saveIdRef.current;
+    setSavePending(true);
+    setError(null);
     let result:
       | Awaited<ReturnType<typeof updateEventFn>>
-      | Awaited<ReturnType<typeof createEventsFn>>
+      | Awaited<ReturnType<typeof createEventsFn>>;
     try {
       result = isEdit
         ? await updateEventFn({
             data: { ...toPayload(entries[0]!), id: event.id },
           })
-        : await createEventsFn({ data: entries.map(toPayload) })
+        : await createEventsFn({ data: entries.map(toPayload) });
     } catch {
-      if (saveId !== saveIdRef.current) return
-      setSavePending(false)
-      setError('Không thể kết nối máy chủ. Vui lòng thử lại.')
-      return
+      if (saveId !== saveIdRef.current) return;
+      setSavePending(false);
+      setError("Không thể kết nối máy chủ. Vui lòng thử lại.");
+      return;
     }
-    if (saveId !== saveIdRef.current) return
-    setSavePending(false)
-    if ('error' in result && result.error) {
-      setError(result.error)
-      return
+    if (saveId !== saveIdRef.current) return;
+    setSavePending(false);
+    if ("error" in result && result.error) {
+      setError(result.error);
+      return;
     }
-    const count = entries.length
+    const count = entries.length;
     toast.success(
-      isEdit
-        ? 'Đã cập nhật sự kiện'
-        : count > 1
-          ? `Đã thêm ${count} sự kiện`
-          : 'Đã thêm sự kiện',
-    )
-    handleOpenChange(false)
-    await onSaved()
+      isEdit ? "Đã cập nhật sự kiện" : count > 1 ? `Đã thêm ${count} sự kiện` : "Đã thêm sự kiện",
+    );
+    handleOpenChange(false);
+    await onSaved();
   }
 
   const saveLabel = pending
-    ? 'Đang lưu…'
+    ? "Đang lưu…"
     : isEdit
-      ? 'Lưu thay đổi'
+      ? "Lưu thay đổi"
       : entries.length > 1
         ? `Thêm ${entries.length} sự kiện`
-        : 'Thêm sự kiện'
+        : "Thêm sự kiện";
 
-  const title = isEdit ? 'Sửa sự kiện' : 'Thêm sự kiện giỗ'
-  const description =
-    'Nhập ngày âm lịch, ngày giỗ sẽ lặp lại đúng ngày đó mỗi năm.'
+  const title = isEdit ? "Sửa sự kiện" : "Thêm sự kiện giỗ";
+  const description = "Nhập ngày âm lịch, ngày giỗ sẽ lặp lại đúng ngày đó mỗi năm.";
 
   const fields = (
     <EntryList
@@ -226,7 +212,7 @@ export function EventFormOverlay({
       onRemove={removeEntry}
       onAdd={addEntry}
     />
-  )
+  );
 
   const actions = (
     <>
@@ -242,15 +228,11 @@ export function EventFormOverlay({
         {saveLabel}
       </Button>
     </>
-  )
+  );
 
   if (isDesktop) {
     return (
-      <Dialog
-        open={open}
-        onOpenChange={handleOpenChange}
-        disablePointerDismissal={pending}
-      >
+      <Dialog open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
         <DialogContent
           className="max-h-[85vh] max-w-lg overflow-y-auto sm:max-w-lg"
           showCloseButton={!pending}
@@ -266,15 +248,11 @@ export function EventFormOverlay({
           </form>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={handleOpenChange}
-      disablePointerDismissal={pending}
-    >
+    <Sheet open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
       <SheetContent
         side="bottom"
         className="flex max-h-[90dvh] flex-col gap-0 p-0"
@@ -284,24 +262,16 @@ export function EventFormOverlay({
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
-        <form
-          id={formId}
-          onSubmit={handleSubmit}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">
-            {fields}
-          </div>
-          {error && (
-            <p className="shrink-0 px-6 pb-2 text-sm text-destructive">{error}</p>
-          )}
+        <form id={formId} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">{fields}</div>
+          {error && <p className="shrink-0 px-6 pb-2 text-sm text-destructive">{error}</p>}
           <SheetFooter className="shrink-0 sm:flex-row sm:justify-end pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             {actions}
           </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
 
 function EntryList({
@@ -313,16 +283,16 @@ function EntryList({
   onRemove,
   onAdd,
 }: {
-  formId: string
-  entries: EventDraft[]
-  isEdit: boolean
-  pending: boolean
-  onUpdate: (key: string, patch: Partial<EventDraft>) => void
-  onRemove: (key: string) => void
-  onAdd: () => void
+  formId: string;
+  entries: EventDraft[];
+  isEdit: boolean;
+  pending: boolean;
+  onUpdate: (key: string, patch: Partial<EventDraft>) => void;
+  onRemove: (key: string) => void;
+  onAdd: () => void;
 }) {
-  const canRemove = !isEdit && entries.length > 1
-  const canAdd = !isEdit && entries.length < MAX_ENTRIES
+  const canRemove = !isEdit && entries.length > 1;
+  const canAdd = !isEdit && entries.length < MAX_ENTRIES;
 
   return (
     <div className="flex flex-col gap-4">
@@ -347,16 +317,12 @@ function EntryList({
           disabled={pending}
           className="self-start"
         >
-          <HugeiconsIcon
-            icon={PlusSignIcon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
+          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
           Thêm ngày
         </Button>
       )}
     </div>
-  )
+  );
 }
 
 function EntryCard({
@@ -369,24 +335,24 @@ function EntryCard({
   onUpdate,
   onRemove,
 }: {
-  formId: string
-  index: number
-  entry: EventDraft
-  showIndex: boolean
-  canRemove: boolean
-  pending: boolean
-  onUpdate: (key: string, patch: Partial<EventDraft>) => void
-  onRemove: (key: string) => void
+  formId: string;
+  index: number;
+  entry: EventDraft;
+  showIndex: boolean;
+  canRemove: boolean;
+  pending: boolean;
+  onUpdate: (key: string, patch: Partial<EventDraft>) => void;
+  onRemove: (key: string) => void;
 }) {
-  const titleId = `${formId}-title-${entry.key}`
-  const dayId = `${formId}-day-${entry.key}`
-  const monthId = `${formId}-month-${entry.key}`
-  const notesId = `${formId}-notes-${entry.key}`
+  const titleId = `${formId}-title-${entry.key}`;
+  const dayId = `${formId}-day-${entry.key}`;
+  const monthId = `${formId}-month-${entry.key}`;
+  const notesId = `${formId}-notes-${entry.key}`;
   const nextOccurrence = nextOccurrences(
     { lunarDay: Number(entry.lunarDay), lunarMonth: Number(entry.lunarMonth) },
     solarToday(),
     1,
-  )[0]
+  )[0];
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl ring-1 ring-foreground/10 p-4">
@@ -432,7 +398,7 @@ function EntryCard({
             items={dayItems}
             value={entry.lunarDay}
             onValueChange={(value) => {
-              if (value != null) onUpdate(entry.key, { lunarDay: String(value) })
+              if (value != null) onUpdate(entry.key, { lunarDay: String(value) });
             }}
             disabled={pending}
           >
@@ -454,7 +420,7 @@ function EntryCard({
             items={monthItems}
             value={entry.lunarMonth}
             onValueChange={(value) => {
-              if (value != null) onUpdate(entry.key, { lunarMonth: String(value) })
+              if (value != null) onUpdate(entry.key, { lunarMonth: String(value) });
             }}
             disabled={pending}
           >
@@ -484,12 +450,10 @@ function EntryCard({
       </div>
       {nextOccurrence && (
         <p className="text-sm text-muted-foreground">
-          Lần tới vào:{' '}
-          <span className="font-medium text-foreground">
-            {formatSolar(nextOccurrence)}
-          </span>
+          Lần tới vào:{" "}
+          <span className="font-medium text-foreground">{formatSolar(nextOccurrence)}</span>
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { addDays, daysInSolarMonth, type SolarDate } from '@lunar/core'
+import { addDays, daysInSolarMonth, type SolarDate } from "@lunar/core";
 
 export interface CalendarCell {
-  date: SolarDate
-  inMonth: boolean
+  date: SolarDate;
+  inMonth: boolean;
 }
 
 /**
@@ -10,13 +10,13 @@ export interface CalendarCell {
  * adjacent months so the grid always contains whole weeks.
  */
 export function monthGrid(year: number, month: number): CalendarCell[] {
-  const lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7
-  const total = Math.ceil((lead + daysInSolarMonth(year, month)) / 7) * 7
-  const first: SolarDate = { day: 1, month, year }
+  const lead = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
+  const total = Math.ceil((lead + daysInSolarMonth(year, month)) / 7) * 7;
+  const first: SolarDate = { day: 1, month, year };
   return Array.from({ length: total }, (_, i) => {
-    const date = addDays(first, i - lead)
-    return { date, inMonth: date.month === month && date.year === year }
-  })
+    const date = addDays(first, i - lead);
+    return { date, inMonth: date.month === month && date.year === year };
+  });
 }
 
 export function shiftMonth(
@@ -24,6 +24,6 @@ export function shiftMonth(
   month: number,
   delta: number,
 ): { year: number; month: number } {
-  const zero = year * 12 + (month - 1) + delta
-  return { year: Math.floor(zero / 12), month: (zero % 12) + 1 }
+  const zero = year * 12 + (month - 1) + delta;
+  return { year: Math.floor(zero / 12), month: (zero % 12) + 1 };
 }
