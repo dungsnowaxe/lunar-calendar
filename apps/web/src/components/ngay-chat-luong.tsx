@@ -29,8 +29,8 @@ import { DANH_GIA_LOAI, TIN_NGUONG_DAN_GIAN, deltaLabel } from "~/lib/ngay-tot";
  *   fact here; whether it is hoàng đạo is not, and that judgement appears only
  *   below as a weighted row.
  * - **Điểm cho việc…** is recorded tradition. It is always qualified by the việc,
- *   always shows every line that went into it, and always carries the
- *   attribution.
+ *   always shows every line that went into it, and remains clearly qualified
+ *   as folk belief.
  *
  * Mixing the two would let a belief-derived label read as a computed fact, which
  * is the one thing the whole design is built to avoid.
@@ -129,21 +129,6 @@ export function NgayChatLuong({ quality }: { quality: DayQuality }) {
                     Khác với nguồn tham chiếu
                   </Badge>
                 )}
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Nguồn:{" "}
-                  {c.citation.url === null ? (
-                    c.citation.source
-                  ) : (
-                    <a
-                      href={c.citation.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-2 hover:text-foreground"
-                    >
-                      {c.citation.source}
-                    </a>
-                  )}
-                </p>
               </li>
             ))}
           </ul>

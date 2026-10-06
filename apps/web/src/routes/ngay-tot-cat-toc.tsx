@@ -40,7 +40,7 @@ function NgayTotCatTocPage() {
         <h1 className="font-heading text-xl font-semibold">Ngày tốt cắt tóc</h1>
         <p className="text-sm text-muted-foreground">
           Từng ngày trong tháng, xếp theo điểm cho việc cắt tóc. Mỗi ngày liệt kê đầy đủ các quy tắc
-          đã tính và nguồn của chúng.
+          đã tính và lý do áp dụng.
         </p>
       </div>
       <NgayTotThang year={nam ?? today.year} month={thang ?? today.month} day={ngay ?? null} />
