@@ -4,7 +4,7 @@ import { formatSolar, nextOccurrences, solarToJdn, solarToday, type SolarDate } 
 import { NumberTicker } from "~/components/ui/number-ticker";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { eventColorVar } from "~/lib/event-colors";
 import { daysBetween, eventRuleLabel } from "~/lib/labels";
 import type { MemorialEvent } from "~/server/events";
@@ -33,15 +33,9 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
     .slice(0, count);
 
   return (
-    <Card>
+    <Card className="almanac-upcoming">
       <CardHeader>
-        <CardTitle>Sắp tới</CardTitle>
-        <CardAction>
-          <Button size="sm" variant="ghost" onClick={onAdd}>
-            <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
-            Thêm
-          </Button>
-        </CardAction>
+        <CardTitle>Ngày giỗ sắp tới</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {upcoming.length === 0 && (
@@ -58,15 +52,15 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
               style={{ borderLeftColor: eventColorVar(event.id) }}
             >
               <div className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-medium">{event.title}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="truncate text-base font-medium">{event.title}</span>
+                <span className="text-sm text-muted-foreground">
                   {eventRuleLabel(event)}, {formatSolar(date)}
                 </span>
               </div>
               {days === 0 ? (
                 <Badge>Hôm nay</Badge>
               ) : (
-                <span className="flex shrink-0 items-baseline gap-1 text-xs text-muted-foreground">
+                <span className="flex shrink-0 items-baseline gap-1 text-sm text-muted-foreground">
                   Còn
                   <NumberTicker
                     value={days}
@@ -78,6 +72,10 @@ export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps
             </div>
           );
         })}
+        <Button className="mt-2 min-h-11 w-full rounded-lg" onClick={onAdd}>
+          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
+          Thêm ngày giỗ
+        </Button>
       </CardContent>
     </Card>
   );

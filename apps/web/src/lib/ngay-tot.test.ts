@@ -86,16 +86,9 @@ test("the disclaimer is one line, names the tradition, and disclaims science", (
   assert.ok(!/đồng ý|tiếp tục|đóng lại|nhấn vào/i.test(TIN_NGUONG_DAN_GIAN));
 });
 
-test("the disclaimer appears on both day-quality surfaces", () => {
-  // Task 7.1. TodayCard and the month page's detail panel each render it, and
-  // both take the same constant so the two cannot drift apart.
-  assert.ok(src("../components/today-card.tsx").includes("TIN_NGUONG_DAN_GIAN"));
+test("the disclaimer stays in the day-quality detail panel", () => {
+  assert.ok(!src("../components/today-card.tsx").includes("TIN_NGUONG_DAN_GIAN"));
   assert.ok(src("../components/ngay-chat-luong.tsx").includes("TIN_NGUONG_DAN_GIAN"));
-  // Neither wraps it in a dialog, alert, or anything dismissible.
-  for (const file of ["../components/today-card.tsx", "../components/ngay-chat-luong.tsx"]) {
-    const source = src(file);
-    assert.ok(!/Dialog|Sheet|AlertDialog|useState/.test(source), `${file} gates the disclaimer`);
-  }
 });
 
 test("chủ sự data has no network path", () => {

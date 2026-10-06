@@ -61,7 +61,7 @@ export function ThemeSwitch() {
             applyTheme(value);
           }}
           className={cn(
-            "flex size-7 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
+            "flex size-10 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
             theme === value && "bg-background text-foreground shadow-sm",
           )}
         >

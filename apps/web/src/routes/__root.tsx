@@ -3,7 +3,12 @@ import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/r
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Moon02Icon } from "@hugeicons/core-free-icons";
+import {
+  Moon02Icon,
+  Calendar03Icon,
+  CalendarCheckIn01Icon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
 import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
 import { NotFound } from "../components/NotFound";
 import { ThemeSwitch } from "~/components/theme-switch";
@@ -65,16 +70,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <div className="flex min-h-svh flex-col">
           <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-            <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-6">
+            <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-6">
               <Link
                 to="/"
-                className="flex items-center gap-2 font-heading text-base font-semibold tracking-tight"
+                className="flex items-center gap-2 font-heading text-2xl font-semibold tracking-tight"
               >
                 <HugeiconsIcon icon={Moon02Icon} className="size-5 text-primary" strokeWidth={2} />
                 Lịch Âm
               </Link>
               <div className="flex items-center gap-2">
-                <nav className="flex items-center gap-1">
+                <nav aria-label="Điều hướng chính" className="hidden items-center gap-2 md:flex">
                   <NavLink to="/">Lịch</NavLink>
                   <NavLink to="/su-kien">Sự kiện</NavLink>
                   <NavLink to="/ngay-tot-cat-toc">Ngày tốt</NavLink>
@@ -84,6 +89,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           {children}
+          <nav aria-label="Điều hướng di động" className="mobile-navigation md:hidden">
+            <NavLink to="/">
+              <HugeiconsIcon icon={Calendar03Icon} />
+              Lịch
+            </NavLink>
+            <NavLink to="/su-kien">
+              <HugeiconsIcon icon={CalendarCheckIn01Icon} />
+              Sự kiện
+            </NavLink>
+            <NavLink to="/ngay-tot-cat-toc">
+              <HugeiconsIcon icon={StarIcon} />
+              Ngày tốt
+            </NavLink>
+          </nav>
         </div>
         <Toaster position="top-center" richColors />
         <TanStackRouterDevtools position="bottom-right" />
@@ -103,9 +122,9 @@ function NavLink({
   return (
     <Link
       to={to}
-      activeProps={{ className: "bg-muted text-foreground" }}
+      activeProps={{ className: "bg-accent text-primary" }}
       activeOptions={{ exact: to === "/" }}
-      className="rounded-4xl px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="rounded-lg px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       {children}
     </Link>

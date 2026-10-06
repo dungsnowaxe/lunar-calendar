@@ -17,10 +17,10 @@ function HomePage() {
   const [formOpen, setFormOpen] = useState(false);
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-6">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <main className="mx-auto w-full almanac-home max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
         <MonthCalendar events={events} />
-        <aside className="flex flex-col gap-6">
+        <aside className="almanac-aside flex flex-col gap-6">
           <TodayCard />
           <UpcomingEvents events={events} onAdd={() => setFormOpen(true)} />
         </aside>
