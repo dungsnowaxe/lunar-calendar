@@ -52,7 +52,7 @@ export function ThemeSwitch() {
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setExpanded(false);
-        toggleRef.current?.focus();
+        requestAnimationFrame(() => toggleRef.current?.focus());
       }
     };
     document.addEventListener("pointerdown", dismiss);
@@ -79,10 +79,15 @@ export function ThemeSwitch() {
         type="button"
         aria-label={`Chế độ giao diện: ${current.label}`}
         aria-expanded={expanded}
-        onClick={() => setExpanded((value) => !value)}
-        className="theme-toggle flex size-11 shrink-0 items-center justify-center rounded-full"
+        onClick={() => {
+          setExpanded(true);
+          requestAnimationFrame(() => {
+            pickerRef.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
+          });
+        }}
+        className="theme-toggle flex size-8 shrink-0 items-center justify-center rounded-full"
       >
-        <HugeiconsIcon icon={current.icon} className="size-5" />
+        <HugeiconsIcon icon={current.icon} className="size-4" />
       </button>
       <div className="theme-options flex items-center gap-0.5">
         {OPTIONS.map(({ value, label, icon: Icon }) => (
@@ -97,7 +102,7 @@ export function ThemeSwitch() {
               localStorage.setItem("theme", value);
               applyTheme(value);
               setExpanded(false);
-              toggleRef.current?.focus();
+              requestAnimationFrame(() => toggleRef.current?.focus());
             }}
             className={cn(
               "flex size-10 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",

@@ -438,17 +438,21 @@
 @media (max-width: 767px) {
   .theme-picker {
     min-width: 0;
-    width: 48px;
+    width: 36px;
     overflow: hidden;
     transition: width 220ms ease;
   }
   .theme-picker.is-expanded {
-    width: 176px;
+    width: 128px;
   }
   .theme-toggle {
     display: flex;
   }
+  .theme-picker.is-expanded .theme-toggle {
+    display: none;
+  }
   .theme-options {
+    flex-shrink: 0;
     visibility: hidden;
     opacity: 0;
     transition: opacity 180ms ease;
