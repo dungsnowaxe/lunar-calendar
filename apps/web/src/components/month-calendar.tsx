@@ -65,7 +65,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
     <Card className="almanac-calendar">
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="min-w-0 truncate text-2xl sm:text-4xl">
+          <CardTitle className="calendar-month-title min-w-0 text-primary text-2xl sm:text-4xl">
             {monthTitle(cursor.year, cursor.month)}
           </CardTitle>
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
@@ -119,8 +119,23 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
             />
           ))}
         </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
-          <span>Số lớn: dương lịch · Số nhỏ: âm lịch</span>
+        <div aria-live="polite">
+          {(eventsByJdn.get(solarToJdn(selected)) ?? []).length > 0 && (
+            <section
+              aria-label={`Ngày giỗ ${formatSolar(selected)}`}
+              className="border-t border-border pt-4"
+            >
+              <p className="mb-2 text-sm font-medium">Ngày giỗ · {formatSolar(selected)}</p>
+              <ul className="flex flex-col gap-2">
+                {(eventsByJdn.get(solarToJdn(selected)) ?? []).map((event) => (
+                  <li key={event.id} className="flex items-center gap-2 text-sm">
+                    <EventColorDot eventId={event.id} className="size-2" />
+                    {event.title}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </CardContent>
     </Card>

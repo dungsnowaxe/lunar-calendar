@@ -86,7 +86,10 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-6", className)}
+      className={cn(
+        "mt-auto flex flex-row gap-2 p-6 [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:flex-1",
+        className,
+      )}
       {...props}
     />
   );
@@ -96,7 +99,7 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("font-heading text-base font-medium text-foreground", className)}
+      className={cn("font-sans text-lg font-semibold text-foreground", className)}
       {...props}
     />
   );
