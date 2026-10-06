@@ -1,6 +1,9 @@
 packages:
   - apps/*
   - packages/*
+# Miniflare pins a vulnerable Undici release; remove once upstream uses >=7.29.1.
+overrides:
+  "miniflare>undici@7.29.0": 7.29.1
 allowBuilds:
   esbuild: true
   workerd: true
