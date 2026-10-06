@@ -77,6 +77,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 <nav className="flex items-center gap-1">
                   <NavLink to="/">Lịch</NavLink>
                   <NavLink to="/su-kien">Sự kiện</NavLink>
+                  <NavLink to="/ngay-tot-cat-toc">Ngày tốt</NavLink>
                 </nav>
                 <ThemeSwitch />
               </div>
@@ -92,7 +93,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NavLink({ to, children }: { to: "/" | "/su-kien"; children: React.ReactNode }) {
+function NavLink({
+  to,
+  children,
+}: {
+  to: "/" | "/su-kien" | "/ngay-tot-cat-toc";
+  children: React.ReactNode;
+}) {
   return (
     <Link
       to={to}

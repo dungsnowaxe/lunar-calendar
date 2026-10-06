@@ -14,6 +14,8 @@ export {
 } from "./solar.ts";
 
 export {
+  CAN,
+  CHI,
   leapMonthOf,
   lunarMonthLength,
   solarToLunar,
@@ -23,5 +25,23 @@ export {
   canChiMonth,
   type LunarDate,
 } from "./lunar.ts";
+
+export {
+  TRUC,
+  TU,
+  TRUC_NHAT,
+  tietKhiOf,
+  tietKhiMonthChi,
+  trucOf,
+  tuOf,
+  trucNhatOf,
+  gioOf,
+  weekdayHanh,
+  type Tu,
+  type Gio,
+  type TrucName,
+  type TuName,
+  type TrucNhatName,
+} from "./almanac.ts";
 
 export { occurrenceInLunarYear, nextOccurrences, type MemorialRule } from "./occurrences.ts";

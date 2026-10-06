@@ -9,7 +9,7 @@
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/server/*.test.ts"
+    "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -17,6 +17,7 @@
     "@hugeicons/core-free-icons": "^4.3.2",
     "@hugeicons/react": "^1.1.10",
     "@lunar/core": "workspace:*",
+    "@lunar/ngay-tot": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-router": "^1.170.35",

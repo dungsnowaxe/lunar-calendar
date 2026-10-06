@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NgayTotCatTocRouteImport } from './routes/ngay-tot-cat-toc'
 import { Route as SuKienRouteImport } from './routes/su-kien'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NgayTotCatTocRoute = NgayTotCatTocRouteImport.update({
+  id: '/ngay-tot-cat-toc',
+  path: '/ngay-tot-cat-toc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuKienRoute = SuKienRouteImport.update({
@@ -25,27 +31,31 @@ const SuKienRoute = SuKienRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ngay-tot-cat-toc': typeof NgayTotCatTocRoute
   '/su-kien': typeof SuKienRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ngay-tot-cat-toc': typeof NgayTotCatTocRoute
   '/su-kien': typeof SuKienRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ngay-tot-cat-toc': typeof NgayTotCatTocRoute
   '/su-kien': typeof SuKienRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/su-kien'
+  fullPaths: '/' | '/ngay-tot-cat-toc' | '/su-kien'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/su-kien'
-  id: '__root__' | '/' | '/su-kien'
+  to: '/' | '/ngay-tot-cat-toc' | '/su-kien'
+  id: '__root__' | '/' | '/ngay-tot-cat-toc' | '/su-kien'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  NgayTotCatTocRoute: typeof NgayTotCatTocRoute
   SuKienRoute: typeof SuKienRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ngay-tot-cat-toc': {
+      id: '/ngay-tot-cat-toc'
+      path: '/ngay-tot-cat-toc'
+      fullPath: '/ngay-tot-cat-toc'
+      preLoaderRoute: typeof NgayTotCatTocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/su-kien': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  NgayTotCatTocRoute: NgayTotCatTocRoute,
   SuKienRoute: SuKienRoute,
 }
 export const routeTree = rootRouteImport

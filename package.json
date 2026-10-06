@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @lunar/core build && pnpm --filter web dev",
-    "build": "pnpm --filter @lunar/core build && pnpm --filter web build",
-    "deploy": "pnpm --filter @lunar/core build && pnpm --filter web deploy",
+    "build": "pnpm --filter @lunar/core build && pnpm --filter @lunar/ngay-tot build && pnpm --filter web build",
+    "deploy": "pnpm --filter @lunar/core build && pnpm --filter @lunar/ngay-tot build && pnpm --filter web deploy",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "lint": "oxlint",

@@ -13,7 +13,7 @@
 
 const PI = Math.PI
 /** The Vietnamese calendar runs on Indochina Time (UTC+7). */
-const TIMEZONE = 7
+export const TIMEZONE = 7
 
 /** Discard the fractional part of a number, e.g., INT(3.2) = 3 */
 function INT(d: number): number {
@@ -118,7 +118,7 @@ function NewMoon(k: number): number {
  * Parameter: floating number jdn, the number of days since 1/1/4713 BC noon
  * Algorithm from: "Astronomical Algorithms" by Jean Meeus, 1998
  */
-function SunLongitude(jdn: number): number {
+export function SunLongitude(jdn: number): number {
   const T = (jdn - 2451545.0) / 36525 // Time in Julian centuries from 2000-01-01 12:00:00 GMT
   const T2 = T * T
   const dr = PI / 180 // degree to radian

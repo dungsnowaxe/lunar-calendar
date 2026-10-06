@@ -16,9 +16,32 @@ export interface LunarDate {
   isLeapMonth: boolean;
 }
 
-const CAN = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"] as const;
+/**
+ * The ten thiên can, in cycle order. Exported so downstream layers can work
+ * with Can–Chi as indices rather than re-parsing the strings `canChiDay` builds.
+ */
+export const CAN = [
+  "Giáp",
+  "Ất",
+  "Bính",
+  "Đinh",
+  "Mậu",
+  "Kỷ",
+  "Canh",
+  "Tân",
+  "Nhâm",
+  "Quý",
+] as const;
 
-const CHI = [
+/**
+ * The twelve địa chi, in cycle order.
+ *
+ * The sixth is spelled "Tỵ" here; the reference almanac canon spells it "Tị".
+ * Both are accepted Vietnamese orthographies. This spelling is pre-existing and
+ * already user-facing, so it is kept, and canon-derived strings are normalised
+ * at the boundary instead — see ADR-0002.
+ */
+export const CHI = [
   "Tý",
   "Sửu",
   "Dần",
