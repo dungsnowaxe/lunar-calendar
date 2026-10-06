@@ -34,6 +34,12 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
   const [cursor, setCursor] = useState({ year: today.year, month: today.month });
   const [selected, setSelected] = useState<SolarDate>(today);
 
+  function changeMonth(delta: number) {
+    const next = shiftMonth(cursor.year, cursor.month, delta);
+    setCursor(next);
+    setSelected({ ...next, day: 1 });
+  }
+
   const cells = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor]);
   const lunarByJdn = useMemo(() => {
     const map = new Map<number, ReturnType<typeof solarToLunar>>();
@@ -73,7 +79,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
               variant="ghost"
               size="icon"
               aria-label="Tháng trước"
-              onClick={() => setCursor((c) => shiftMonth(c.year, c.month, -1))}
+              onClick={() => changeMonth(-1)}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
             </Button>
@@ -91,7 +97,7 @@ export function MonthCalendar({ events }: MonthCalendarProps) {
               variant="ghost"
               size="icon"
               aria-label="Tháng sau"
-              onClick={() => setCursor((c) => shiftMonth(c.year, c.month, 1))}
+              onClick={() => changeMonth(1)}
             >
               <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
             </Button>

@@ -4,6 +4,7 @@ import { listEventsFn } from "~/server/events";
 import { EventFormOverlay } from "~/components/event-form-overlay";
 import { MonthCalendar } from "~/components/month-calendar";
 import { TodayCard } from "~/components/today-card";
+import { useIsDesktop } from "~/hooks/use-min-width";
 import { UpcomingEvents } from "~/components/upcoming-events";
 
 export const Route = createFileRoute("/")({
@@ -13,14 +14,16 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const router = useRouter();
+  const isDesktop = useIsDesktop();
   const events = Route.useLoaderData();
   const [formOpen, setFormOpen] = useState(false);
 
   return (
     <main className="mx-auto w-full almanac-home max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-10">
       <div className="almanac-workspace">
-        <TodayCard />
-        <MonthCalendar events={events} />
+        {isDesktop
+          ? [<MonthCalendar key="calendar" events={events} />, <TodayCard key="today" />]
+          : [<TodayCard key="today" />, <MonthCalendar key="calendar" events={events} />]}
         <UpcomingEvents events={events} onAdd={() => setFormOpen(true)} />
       </div>
       <EventFormOverlay
