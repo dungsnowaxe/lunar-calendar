@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MonitorIcon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { cn } from "~/lib/utils";
@@ -20,6 +20,9 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeSwitch() {
+  const [expanded, setExpanded] = useState(false);
+  const pickerRef = useRef<HTMLFieldSetElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
@@ -39,35 +42,77 @@ export function ThemeSwitch() {
     return () => mq.removeEventListener("change", onChange);
   }, [theme]);
 
+  useEffect(() => {
+    if (!expanded) return;
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !pickerRef.current?.contains(event.target)) {
+        setExpanded(false);
+      }
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExpanded(false);
+        requestAnimationFrame(() => toggleRef.current?.focus());
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [expanded]);
+
+  const current = OPTIONS.find((option) => option.value === theme)!;
+
   return (
-    <div
-      // role="group" is the correct ARIA for a button segmented control;
-      // <fieldset> would add form semantics and default browser styles.
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-      role="group"
+    <fieldset
+      ref={pickerRef}
       aria-label="Chế độ giao diện"
-      className="flex items-center gap-0.5 rounded-4xl bg-muted p-0.5"
+      className={cn(
+        "theme-picker flex items-center rounded-4xl bg-muted p-0.5",
+        expanded && "is-expanded",
+      )}
     >
-      {OPTIONS.map(({ value, label, icon: Icon }) => (
-        <button
-          key={value}
-          type="button"
-          aria-label={label}
-          title={label}
-          aria-pressed={theme === value}
-          onClick={() => {
-            setTheme(value);
-            localStorage.setItem("theme", value);
-            applyTheme(value);
-          }}
-          className={cn(
-            "flex size-7 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
-            theme === value && "bg-background text-foreground shadow-sm",
-          )}
-        >
-          <HugeiconsIcon icon={Icon} className="size-4" strokeWidth={2} />
-        </button>
-      ))}
-    </div>
+      <button
+        ref={toggleRef}
+        type="button"
+        aria-label={`Chế độ giao diện: ${current.label}`}
+        aria-expanded={expanded}
+        onClick={() => {
+          setExpanded(true);
+          requestAnimationFrame(() => {
+            pickerRef.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
+          });
+        }}
+        className="theme-toggle flex size-8 shrink-0 items-center justify-center rounded-full"
+      >
+        <HugeiconsIcon icon={current.icon} className="size-4" />
+      </button>
+      <div className="theme-options flex items-center gap-0.5">
+        {OPTIONS.map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            type="button"
+            aria-label={label}
+            title={label}
+            aria-pressed={theme === value}
+            onClick={() => {
+              setTheme(value);
+              localStorage.setItem("theme", value);
+              applyTheme(value);
+              setExpanded(false);
+              requestAnimationFrame(() => toggleRef.current?.focus());
+            }}
+            className={cn(
+              "flex size-10 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
+              theme === value && "bg-background text-foreground shadow-sm",
+            )}
+          >
+            <HugeiconsIcon icon={Icon} className="size-4" strokeWidth={2} />
+          </button>
+        ))}
+      </div>
+    </fieldset>
   );
 }
