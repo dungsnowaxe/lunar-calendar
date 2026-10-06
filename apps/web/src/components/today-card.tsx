@@ -50,7 +50,6 @@ export function TodayCard() {
         </div>
         <p className="text-sm text-muted-foreground">
           Âm lịch: {lunar.day} tháng {lunar.month}
-          {lunar.isLeapMonth ? " (nhuận)" : ""}
           {lunar.isLeapMonth ? " (nhuận)" : ""} năm {canChiYear(lunar.year)}
         </p>
         <p className="text-sm text-muted-foreground">
