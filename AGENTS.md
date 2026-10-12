@@ -8,6 +8,7 @@ pnpm monorepo — run commands from the repo root.
 
 - `apps/web` — React 19 + TanStack Start + Tailwind CSS v4, deployed to Cloudflare Workers.
 - `packages/lunar` (`@lunar/core`) — lunar calendar core library.
+- `packages/ngay-tot` (`@lunar/ngay-tot`) — day-quality (ngày tốt) package used by the web app.
 - `apps/web/src/routeTree.gen.ts` is generated — never edit it (ignored by oxlint/oxfmt).
 
 ## Commands
