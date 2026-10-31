@@ -102,7 +102,7 @@ export function buildRows(days: readonly DayQuality[], today: SolarDate): DayRow
     return {
       quality,
       day: date.day,
-      weekday: CALENDAR_HEADERS[(solarDayOfWeek(date) + 6) % 7] ?? "",
+      weekday: CALENDAR_HEADERS[(solarDayOfWeek(date) + 6) % 7],
       lunar: lunarShortLabel(solarToLunar(date)),
       reason: lyDoChinh(quality),
       isToday: date.day === today.day && date.month === today.month && date.year === today.year,
