@@ -35,12 +35,14 @@ function NgayTotCatTocPage() {
   const today = solarToday();
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-6">
-      <div className="mb-6">
-        <h1 className="font-heading text-xl font-semibold">Ngày tốt cắt tóc</h1>
-        <p className="text-sm text-muted-foreground">
-          Từng ngày trong tháng, xếp theo điểm cho việc cắt tóc. Mỗi ngày liệt kê đầy đủ các quy tắc
-          đã tính và lý do áp dụng.
+    <main className="mx-auto w-full haircut-page max-w-7xl flex-1 px-4 py-8 md:px-6 md:py-12">
+      <div className="mb-8 md:mb-12">
+        <h1 className="font-heading text-[clamp(1.8rem,4.5vw,3.5rem)] leading-tight tracking-tight">
+          Ngày tốt cắt tóc
+        </h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+          Tra cứu ngày tốt cắt tóc theo tín ngưỡng dân gian. Chọn ngày trên lịch để xem điểm và lý
+          do đánh giá.
         </p>
       </div>
       <NgayTotThang year={nam ?? today.year} month={thang ?? today.month} day={ngay ?? null} />
