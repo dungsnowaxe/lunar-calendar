@@ -261,7 +261,10 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
         </div>
         <details className="haircut-disclosure mt-5" key={`${year}-${month}-${selected.date.day}`}>
           <summary className="haircut-score-toggle">
-            Xem cách tính điểm <span aria-hidden="true">＋</span>
+            Xem cách tính điểm{" "}
+            <span className="haircut-disclosure-mark" aria-hidden="true">
+              ＋
+            </span>
           </summary>
           <div className="haircut-breakdown mt-5">
             <NgayChatLuong quality={selected} />
@@ -270,7 +273,12 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
         <details className="haircut-disclosure mt-6 border-t border-border pt-5">
           <summary className="flex min-h-11 items-center justify-between gap-3 font-heading text-lg">
             Chọn tuổi của bạn{" "}
-            <span className="text-xs font-sans text-muted-foreground">Tùy chọn ＋</span>
+            <span className="text-xs font-sans text-muted-foreground">
+              Tùy chọn{" "}
+              <span className="haircut-disclosure-mark" aria-hidden="true">
+                ＋
+              </span>
+            </span>
           </summary>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Xem điểm theo tuổi Can–Chi. Chỉ lưu trên thiết bị của bạn.

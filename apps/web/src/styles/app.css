@@ -586,12 +586,35 @@
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }
+.haircut-disclosure {
+  interpolate-size: allow-keywords;
+}
 .haircut-disclosure > summary {
   cursor: pointer;
   list-style: none;
 }
 .haircut-disclosure > summary::-webkit-details-marker {
   display: none;
+}
+.haircut-disclosure::details-content {
+  height: 0;
+  overflow: clip;
+  opacity: 0;
+  transition:
+    height 200ms ease,
+    opacity 160ms ease,
+    content-visibility 200ms ease allow-discrete;
+}
+.haircut-disclosure[open]::details-content {
+  height: auto;
+  opacity: 1;
+}
+.haircut-disclosure-mark {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+.haircut-disclosure[open] .haircut-disclosure-mark {
+  transform: rotate(45deg);
 }
 .haircut-score-toggle {
   display: flex;
