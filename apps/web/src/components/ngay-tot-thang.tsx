@@ -7,7 +7,6 @@ import {
   Calendar03Icon,
   LayoutTable01Icon,
   ArrowUp01Icon,
-  ArrowDown01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   MAX_SOLAR_YEAR,
@@ -16,7 +15,7 @@ import {
   solarToLunar,
   solarToday,
 } from "@lunar/core";
-import { scoreDay, DANH_GIA, type DanhGia } from "@lunar/ngay-tot";
+import { scoreDay, type DanhGia } from "@lunar/ngay-tot";
 import {
   Table,
   TableBody,
@@ -33,7 +32,18 @@ import { NgayChatLuong } from "~/components/ngay-chat-luong";
 import { shiftMonth } from "~/lib/calendar-grid";
 import { chuSuDuocChon } from "~/lib/chu-su";
 import { CALENDAR_HEADERS, lunarShortLabel, weekdayLong } from "~/lib/labels";
-import { DANH_GIA_LOAI, TIN_NGUONG_DAN_GIAN, lyDoChinh, ngayTrongThang } from "~/lib/ngay-tot";
+import { DANH_GIA_LOAI, TIN_NGUONG_DAN_GIAN, ngayTrongThang } from "~/lib/ngay-tot";
+import {
+  COLUMNS,
+  DEFAULT_SORT,
+  buildRows,
+  nextSort,
+  sortLabel,
+  sortRows,
+  type DayRow,
+  type SortKey,
+  type SortOrder,
+} from "~/lib/ngay-tot-bang";
 import { useChuSu } from "~/hooks/use-chu-su";
 import { cn } from "~/lib/utils";
 
@@ -45,15 +55,6 @@ const DAY_TONE: Record<DanhGia, string> = {
   "Rất xấu": "poor",
 };
 
-const SORT_COLUMNS = [
-  { key: "date", label: "Ngày dương" },
-  { key: "lunar", label: "Âm lịch" },
-  { key: "assessment", label: "Đánh giá" },
-  { key: "score", label: "Điểm" },
-  { key: "reason", label: "Lý do nổi bật" },
-] as const;
-type SortKey = (typeof SORT_COLUMNS)[number]["key"];
-
 interface NgayTotThangProps {
   year: number;
   month: number;
@@ -63,72 +64,23 @@ interface NgayTotThangProps {
 /** Calendar and ranking share the same scores. Selection stays server-rendered and shareable. */
 export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
   const [view, setView] = useState<"calendar" | "list">("calendar");
-  const [sort, setSort] = useState<SortKey>("score");
-  const [sortDirections, setSortDirections] = useState<Record<SortKey, "asc" | "desc">>({
-    date: "asc",
-    lunar: "asc",
-    assessment: "desc",
-    score: "desc",
-    reason: "asc",
-  });
-  const direction = sortDirections[sort];
+  const [order, setOrder] = useState<SortOrder>(DEFAULT_SORT);
   const today = useMemo(() => solarToday(), []);
   const { state } = useChuSu();
   const days = useMemo(() => {
     const chuSu = chuSuDuocChon(state);
     return ngayTrongThang(year, month).map((date) => scoreDay(date, "cat-toc", chuSu));
   }, [year, month, state]);
+  const rows = useMemo(() => buildRows(days, today), [days, today]);
   const ranked = useMemo(
-    () => [...days].sort((a, b) => b.score - a.score || a.date.day - b.date.day),
-    [days],
+    () => [...rows].sort((a, b) => b.quality.score - a.quality.score || a.day - b.day),
+    [rows],
   );
-  const listed = useMemo(
-    () =>
-      [...days].sort((a, b) => {
-        let comparison: number;
-        switch (sort) {
-          case "date":
-            comparison = a.date.day - b.date.day;
-            break;
-          case "lunar": {
-            const left = solarToLunar(a.date);
-            const right = solarToLunar(b.date);
-            comparison =
-              left.year - right.year ||
-              left.month - right.month ||
-              Number(left.isLeapMonth) - Number(right.isLeapMonth) ||
-              left.day - right.day;
-            break;
-          }
-          case "assessment":
-            comparison = DANH_GIA.indexOf(a.danhGia) - DANH_GIA.indexOf(b.danhGia);
-            break;
-          case "reason":
-            comparison = (lyDoChinh(a)?.rule ?? "").localeCompare(lyDoChinh(b)?.rule ?? "", "vi");
-            break;
-          case "score":
-            comparison = a.score - b.score;
-            break;
-        }
-        return (direction === "asc" ? comparison : -comparison) || a.date.day - b.date.day;
-      }),
-    [days, sort, direction],
-  );
-
-  function toggleDirection(key: SortKey) {
-    setSortDirections((previous) => ({
-      ...previous,
-      [key]: previous[key] === "asc" ? "desc" : "asc",
-    }));
-  }
-
-  function changeSort(key: SortKey) {
-    if (key === sort) toggleDirection(key);
-    setSort(key);
-  }
-  const selected = ranked.find((q) => q.date.day === day) ?? ranked[0]!;
+  const listed = useMemo(() => sortRows(rows, order), [rows, order]);
+  const selectedRow = ranked.find((row) => row.day === day) ?? ranked[0]!;
+  const selected = selectedRow.quality;
   const lunar = solarToLunar(selected.date);
-  const reason = lyDoChinh(selected);
+  const reason = selectedRow.reason;
   const previous = shiftMonth(year, month, -1);
   const next = shiftMonth(year, month, 1);
   const lead = (solarDayOfWeek(days[0]!.date) + 6) % 7;
@@ -155,8 +107,8 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
           </button>
           <button
             type="button"
-            aria-label="Xem bảng hoặc thẻ"
-            title="Bảng / thẻ"
+            aria-label="Xem bảng"
+            title="Bảng"
             aria-pressed={view === "list"}
             onClick={() => setView("list")}
           >
@@ -176,7 +128,7 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
           <MonthLink to={next} label="Tháng sau" icon={ArrowRight01Icon} />
         </div>
         {view === "calendar" ? (
-          <>
+          <div key="calendar" className="haircut-view-pane">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-xs leading-relaxed text-muted-foreground">
                 Số nhỏ là ngày âm lịch.
@@ -242,171 +194,18 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
                 Xấu / Rất xấu
               </span>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="my-5 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-              <p>{days.length} ngày · Gồm cả ngày đã qua</p>
-              <div className="flex items-center gap-2 md:hidden">
-                <label className="flex items-center gap-2" htmlFor="haircut-sort">
-                  Sắp xếp
-                </label>
-                <select
-                  id="haircut-sort"
-                  className="min-h-11 rounded-md border border-border bg-background px-2 text-foreground"
-                  value={sort}
-                  onChange={(event) => {
-                    const column = SORT_COLUMNS.find((column) => column.key === event.target.value);
-                    if (column) changeSort(column.key);
-                  }}
-                >
-                  {SORT_COLUMNS.map((column) => (
-                    <option key={column.key} value={column.key}>
-                      {column.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="flex size-11 items-center justify-center rounded-md border border-border text-foreground"
-                  aria-label={
-                    direction === "asc"
-                      ? "Đang tăng dần, đổi sang giảm dần"
-                      : "Đang giảm dần, đổi sang tăng dần"
-                  }
-                  onClick={() => toggleDirection(sort)}
-                >
-                  <HugeiconsIcon
-                    icon={direction === "asc" ? ArrowUp01Icon : ArrowDown01Icon}
-                    size={18}
-                    aria-hidden="true"
-                  />
-                </button>
-              </div>
-              <p className="hidden md:block">Nhấn tiêu đề cột để sắp xếp</p>
-            </div>
-            <div className="haircut-table-view">
-              <Table className="haircut-table">
-                <TableCaption className="sr-only">
-                  Đánh giá từng ngày cho việc cắt tóc, xếp theo{" "}
-                  {SORT_COLUMNS.find((column) => column.key === sort)?.label},{" "}
-                  {direction === "asc" ? "tăng dần" : "giảm dần"}
-                </TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    {SORT_COLUMNS.map((column) => (
-                      <TableHead
-                        key={column.key}
-                        scope="col"
-                        aria-sort={
-                          sort === column.key
-                            ? direction === "asc"
-                              ? "ascending"
-                              : "descending"
-                            : undefined
-                        }
-                      >
-                        <button
-                          type="button"
-                          onClick={() => changeSort(column.key)}
-                          className="haircut-sort-header"
-                          aria-label={`Sắp xếp theo ${column.label}`}
-                        >
-                          {column.label}
-                          <HugeiconsIcon
-                            icon={
-                              sortDirections[column.key] === "asc" ? ArrowUp01Icon : ArrowDown01Icon
-                            }
-                            size={15}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {listed.map((q) => (
-                    <TableRow key={q.date.day} data-selected={q.date.day === selected.date.day}>
-                      <TableCell>
-                        <Link
-                          to="/ngay-tot-cat-toc"
-                          search={{ nam: year, thang: month, ngay: q.date.day }}
-                          hash="haircut-detail"
-                          resetScroll={false}
-                          aria-label={`Xem chi tiết ngày ${q.date.day}/${month}/${year}`}
-                          aria-current={q.date.day === selected.date.day ? "true" : undefined}
-                          className="haircut-table-date"
-                        >
-                          <span className="font-heading text-xl tabular-nums">
-                            {q.date.day}/{month}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {weekdayLong(solarDayOfWeek(q.date))}
-                          </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {lunarShortLabel(solarToLunar(q.date))}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={DANH_GIA_LOAI[q.danhGia]}>{q.danhGia}</Badge>
-                      </TableCell>
-                      <TableCell className="font-medium tabular-nums">
-                        {q.score}
-                        <span className="sr-only"> trên 100</span>
-                      </TableCell>
-                      <TableCell className="text-xs leading-relaxed text-muted-foreground">
-                        {lyDoChinh(q)?.rule ?? "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <ul className="haircut-day-cards" aria-label="Danh sách ngày cắt tóc">
-              {listed.map((q) => (
-                <li key={q.date.day}>
-                  <Link
-                    to="/ngay-tot-cat-toc"
-                    search={{ nam: year, thang: month, ngay: q.date.day }}
-                    hash="haircut-detail"
-                    resetScroll={false}
-                    aria-current={q.date.day === selected.date.day ? "true" : undefined}
-                    className="haircut-day-card"
-                  >
-                    <div className="haircut-card-date">
-                      <span className="font-heading text-5xl leading-none tabular-nums">
-                        {q.date.day}
-                      </span>
-                      <span className="mt-2 text-sm text-muted-foreground">/{month}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">
-                        {weekdayLong(solarDayOfWeek(q.date))}{" "}
-                        <span className="font-normal text-muted-foreground">
-                          · {lunarShortLabel(solarToLunar(q.date))} âm lịch
-                        </span>
-                      </p>
-                      <div className="my-3 flex flex-wrap items-center gap-3">
-                        <Badge className={DANH_GIA_LOAI[q.danhGia]}>{q.danhGia}</Badge>
-                        <span className="font-heading text-xl tabular-nums">
-                          {q.score}
-                          <span className="text-xs text-muted-foreground"> / 100</span>
-                        </span>
-                      </div>
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        {lyDoChinh(q)?.rule ?? "—"}
-                      </p>
-                    </div>
-                    <span className="haircut-card-action">
-                      Xem chi tiết <span aria-hidden="true">→</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </>
+          <div key="list" className="haircut-view-pane">
+            <DayTable
+              rows={listed}
+              order={order}
+              onSort={(key) => setOrder(nextSort(order, key))}
+              selectedDay={selected.date.day}
+              year={year}
+              month={month}
+            />
+          </div>
         )}
       </section>
 
@@ -486,29 +285,27 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
 
       {view === "calendar" && (
         <section className="haircut-ranking min-w-0" aria-label="Xếp hạng các ngày trong tháng">
-          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-heading text-xl">Điểm cao trong tháng</h2>
-            <span className="text-xs text-muted-foreground">Xếp theo điểm, gồm cả ngày đã qua</span>
-          </div>
+          <h2 className="mb-5 font-heading text-xl">Điểm cao trong tháng</h2>
           <div className="haircut-picks">
-            {ranked.slice(0, 3).map((q) => (
+            {ranked.slice(0, 3).map((row) => (
               <Link
-                key={q.date.day}
+                key={row.day}
                 to="/ngay-tot-cat-toc"
-                search={{ nam: year, thang: month, ngay: q.date.day }}
+                search={{ nam: year, thang: month, ngay: row.day }}
                 resetScroll={false}
-                aria-current={selected.date.day === q.date.day ? "true" : undefined}
+                aria-current={selected.date.day === row.day ? "true" : undefined}
+                data-past={row.isPast || undefined}
                 className="haircut-pick"
               >
                 <span className="font-heading text-4xl leading-none">
-                  {q.date.day}
+                  {row.day}
                   <span className="text-base text-muted-foreground">/{month}</span>
                 </span>
                 <span className="mt-2 text-xs text-muted-foreground">
-                  {weekdayLong(solarDayOfWeek(q.date))}
+                  {weekdayLong(solarDayOfWeek(row.quality.date))}
                 </span>
-                <Badge className={cn(DANH_GIA_LOAI[q.danhGia], "mt-3 self-start")}>
-                  {q.danhGia} · {q.score}
+                <Badge className={cn(DANH_GIA_LOAI[row.quality.danhGia], "mt-3 self-start")}>
+                  {row.quality.danhGia} · {row.quality.score}
                 </Badge>
               </Link>
             ))}
@@ -526,6 +323,135 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
         </section>
       )}
     </div>
+  );
+}
+
+interface DayTableProps {
+  rows: readonly DayRow[];
+  order: SortOrder;
+  onSort: (key: SortKey) => void;
+  selectedDay: number;
+  year: number;
+  month: number;
+}
+
+function DayTable({ rows, order, onSort, selectedDay, year, month }: DayTableProps) {
+  return (
+    <div className="haircut-table-view">
+      <p className="sr-only" aria-live="polite">
+        {sortLabel(order)}
+      </p>
+      <Table className="haircut-table">
+        <TableCaption className="sr-only">
+          Đánh giá từng ngày cho việc cắt tóc, xếp theo {sortLabel(order)}
+        </TableCaption>
+        <TableHeader>
+          <TableRow>
+            {COLUMNS.map((col) => (
+              <SortHead key={col.key} col={col} order={order} onSort={onSort} />
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <DayTableRow
+              key={row.day}
+              row={row}
+              selected={row.day === selectedDay}
+              year={year}
+              month={month}
+            />
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function isSortableColumn(
+  col: (typeof COLUMNS)[number],
+): col is Extract<
+  (typeof COLUMNS)[number],
+  { sort: { defaultDirection: SortOrder["direction"] } }
+> {
+  return "sort" in col;
+}
+
+function SortHead({
+  col,
+  order,
+  onSort,
+}: {
+  col: (typeof COLUMNS)[number];
+  order: SortOrder;
+  onSort: (key: SortKey) => void;
+}) {
+  const sortable = isSortableColumn(col);
+  const active = sortable && col.key === order.key;
+  return (
+    <TableHead
+      scope="col"
+      aria-sort={active ? (order.direction === "asc" ? "ascending" : "descending") : undefined}
+      data-hide-below-sm={"hideBelowSm" in col && col.hideBelowSm ? true : undefined}
+      data-align={"align" in col ? col.align : undefined}
+    >
+      {sortable ? (
+        <button
+          type="button"
+          className="haircut-sort-header"
+          data-active={active || undefined}
+          data-direction={active ? order.direction : undefined}
+          aria-label={`Sắp xếp theo ${col.label}`}
+          onClick={() => onSort(col.key)}
+        >
+          {col.label}
+          <HugeiconsIcon icon={ArrowUp01Icon} size={14} aria-hidden="true" />
+        </button>
+      ) : (
+        col.label
+      )}
+    </TableHead>
+  );
+}
+
+function DayTableRow({
+  row,
+  selected,
+  year,
+  month,
+}: {
+  row: DayRow;
+  selected: boolean;
+  year: number;
+  month: number;
+}) {
+  return (
+    <TableRow data-past={row.isPast || undefined} data-today={row.isToday || undefined}>
+      <TableCell>
+        <Link
+          to="/ngay-tot-cat-toc"
+          search={{ nam: year, thang: month, ngay: row.day }}
+          hash="haircut-detail"
+          resetScroll={false}
+          aria-label={`Xem chi tiết ngày ${row.day}/${month}/${year}`}
+          aria-current={selected ? "true" : undefined}
+          className="haircut-table-date"
+        >
+          <span>{row.day}</span>
+          <span>
+            {row.weekday} · {row.lunar} âm lịch
+          </span>
+        </Link>
+      </TableCell>
+      <TableCell>
+        <Badge className={DANH_GIA_LOAI[row.quality.danhGia]}>{row.quality.danhGia}</Badge>
+      </TableCell>
+      <TableCell data-align="end" className="font-medium tabular-nums">
+        {row.quality.score}
+        <span className="sr-only"> trên 100</span>
+      </TableCell>
+      <TableCell data-hide-below-sm>{row.reason?.rule ?? "—"}</TableCell>
+    </TableRow>
   );
 }
 

@@ -716,7 +716,7 @@
   background: var(--muted);
 }
 .haircut-table-view {
-  display: none;
+  display: block;
 }
 .haircut-table {
   width: 100%;
@@ -738,11 +738,12 @@
 .haircut-table td:first-child {
   padding-left: 12px;
 }
-.haircut-table tr[data-selected="true"] {
-  background: var(--accent);
-}
-.haircut-table tbody tr:hover {
+.haircut-table tbody tr:has([aria-current]),
+.haircut-table tbody tr:has(a:hover) {
   background: var(--muted);
+}
+.haircut-table tbody tr:has([aria-current]) {
+  background: var(--accent);
 }
 .haircut-table-date {
   display: flex;
@@ -756,54 +757,9 @@
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.haircut-day-cards {
-  display: grid;
-  gap: 16px;
-}
-.haircut-day-card {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  column-gap: 16px;
-  padding: 20px 16px 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-.haircut-day-card[aria-current] {
-  border-color: var(--primary);
-  background: var(--accent);
-}
-.haircut-day-card:hover {
-  background: var(--muted);
-}
-.haircut-card-date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-right: 1px solid var(--border);
-  padding-right: 12px;
-}
-.haircut-card-action {
-  grid-column: 1 / -1;
-  display: flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 13px;
-  color: var(--primary);
-}
 #haircut-days,
 #haircut-detail {
   scroll-margin-top: 88px;
-}
-@media (min-width: 768px) {
-  .haircut-table-view {
-    display: block;
-  }
-  .haircut-day-cards {
-    display: none;
-  }
 }
 @media (min-width: 1024px) {
   .haircut-workspace[data-view="list"] {
