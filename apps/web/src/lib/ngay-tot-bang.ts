@@ -10,16 +10,14 @@ export interface DayRow {
   readonly lunar: string;
   readonly reason: Contribution | null;
   readonly isToday: boolean;
-  /** Strictly before today. Muted in the list so the copy "gồm cả ngày đã qua" is unnecessary. */
-  readonly isPast: boolean;
+  readonly isBeforeToday: boolean;
 }
 
 export type SortDirection = "asc" | "desc";
 
 interface Sortable {
   readonly defaultDirection: SortDirection;
-  /** Ascending compare. Direction is applied by `sortRows`, never inside `compare`. */
-  readonly compare: (a: DayRow, b: DayRow) => number;
+  readonly ascendingCompare: (a: DayRow, b: DayRow) => number;
 }
 
 export type Column =
@@ -42,14 +40,17 @@ export const COLUMNS = [
   {
     key: "date",
     label: "Ngày",
-    sort: { defaultDirection: "asc", compare: (a: DayRow, b: DayRow) => a.day - b.day },
+    sort: {
+      defaultDirection: "asc",
+      ascendingCompare: (a: DayRow, b: DayRow) => a.day - b.day,
+    },
   },
   {
     key: "assessment",
     label: "Đánh giá",
     sort: {
       defaultDirection: "desc",
-      compare: (a: DayRow, b: DayRow) =>
+      ascendingCompare: (a: DayRow, b: DayRow) =>
         DANH_GIA.indexOf(a.quality.danhGia) - DANH_GIA.indexOf(b.quality.danhGia),
     },
   },
@@ -59,7 +60,7 @@ export const COLUMNS = [
     align: "end",
     sort: {
       defaultDirection: "desc",
-      compare: (a: DayRow, b: DayRow) => a.quality.score - b.quality.score,
+      ascendingCompare: (a: DayRow, b: DayRow) => a.quality.score - b.quality.score,
     },
   },
   { key: "reason", label: "Lý do nổi bật", hideBelowSm: true },
@@ -89,9 +90,11 @@ export function nextSort(current: SortOrder, key: SortKey): SortOrder {
 }
 
 export function sortRows(rows: readonly DayRow[], order: SortOrder): DayRow[] {
-  const { compare } = sortableColumn(order.key).sort;
+  const { ascendingCompare } = sortableColumn(order.key).sort;
   return [...rows].sort(
-    (a, b) => (order.direction === "asc" ? compare(a, b) : compare(b, a)) || a.day - b.day,
+    (a, b) =>
+      (order.direction === "asc" ? ascendingCompare(a, b) : ascendingCompare(b, a)) ||
+      a.day - b.day,
   );
 }
 
@@ -106,7 +109,7 @@ export function buildRows(days: readonly DayQuality[], today: SolarDate): DayRow
       lunar: lunarShortLabel(solarToLunar(date)),
       reason: lyDoChinh(quality),
       isToday: date.day === today.day && date.month === today.month && date.year === today.year,
-      isPast: solarToJdn(date) < todayJdn,
+      isBeforeToday: solarToJdn(date) < todayJdn,
     };
   });
 }

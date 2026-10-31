@@ -295,7 +295,7 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
                 search={{ nam: year, thang: month, ngay: row.day }}
                 resetScroll={false}
                 aria-current={selected.date.day === row.day ? "true" : undefined}
-                data-past={row.isPast || undefined}
+                data-past={row.isBeforeToday || undefined}
                 className="haircut-pick"
               >
                 <span className="font-heading text-4xl leading-none">
@@ -428,7 +428,7 @@ function DayTableRow({
 }) {
   return (
     <TableRow
-      data-past={row.isPast || undefined}
+      data-past={row.isBeforeToday || undefined}
       data-today={row.isToday || undefined}
       style={{ viewTransitionName: `haircut-day-${row.day}` }}
     >

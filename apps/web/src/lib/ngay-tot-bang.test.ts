@@ -33,7 +33,7 @@ function stubRow(day: number, score: number, danhGia: DanhGia): DayRow {
     lunar: `${day}/8`,
     reason: null,
     isToday: false,
-    isPast: false,
+    isBeforeToday: false,
   };
 }
 
