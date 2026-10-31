@@ -44,6 +44,7 @@ import {
   type SortKey,
   type SortOrder,
 } from "~/lib/ngay-tot-bang";
+import { withViewTransition } from "~/lib/view-transition";
 import { useChuSu } from "~/hooks/use-chu-su";
 import { cn } from "~/lib/utils";
 
@@ -200,7 +201,7 @@ export function NgayTotThang({ year, month, day }: NgayTotThangProps) {
             <DayTable
               rows={listed}
               order={order}
-              onSort={(key) => setOrder(nextSort(order, key))}
+              onSort={(key) => withViewTransition(() => setOrder(nextSort(order, key)))}
               selectedDay={selected.date.day}
               year={year}
               month={month}
@@ -426,7 +427,11 @@ function DayTableRow({
   month: number;
 }) {
   return (
-    <TableRow data-past={row.isPast || undefined} data-today={row.isToday || undefined}>
+    <TableRow
+      data-past={row.isPast || undefined}
+      data-today={row.isToday || undefined}
+      style={{ viewTransitionName: `haircut-day-${row.day}` }}
+    >
       <TableCell>
         <Link
           to="/ngay-tot-cat-toc"

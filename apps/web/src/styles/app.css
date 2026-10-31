@@ -345,6 +345,11 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 .almanac-calendar [data-slot="button"] {
@@ -714,6 +719,17 @@
 }
 .haircut-view-switch button[aria-pressed="false"]:hover {
   background: var(--muted);
+}
+.haircut-view-pane {
+  animation: haircut-view-fade 180ms ease both;
+}
+@keyframes haircut-view-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .haircut-table-view {
   display: block;
