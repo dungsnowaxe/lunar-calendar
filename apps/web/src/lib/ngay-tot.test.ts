@@ -206,6 +206,19 @@ test("user-facing copy uses only GLOSSARY.md vocabulary", () => {
   }
 });
 
+test("the list view does not explain the table to the reader", () => {
+  const source = stripComments(src("../components/ngay-tot-thang.tsx"));
+  for (const line of [
+    "Gồm cả ngày đã qua",
+    "Nhấn tiêu đề cột để sắp xếp",
+    "Xếp theo điểm, gồm cả ngày đã qua",
+  ]) {
+    assert.ok(!source.includes(line), `list chrome returned: ${line}`);
+  }
+  assert.ok(!source.includes("data-selected"), "selected rows still use data-selected");
+  assert.ok(!source.includes("haircut-day-cards"), "card list is still on the month page");
+});
+
 test("the month page ranks every day and filters none", () => {
   // Task 4.3. A ngày xung may lower a day's score and push it down the list, but
   // it can never remove it. Ranking is a sort; a `filter` here would be a veto by

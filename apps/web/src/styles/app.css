@@ -345,6 +345,14 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  ::details-content {
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 .almanac-calendar [data-slot="button"] {
@@ -581,12 +589,35 @@
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }
+.haircut-disclosure {
+  interpolate-size: allow-keywords;
+}
 .haircut-disclosure > summary {
   cursor: pointer;
   list-style: none;
 }
 .haircut-disclosure > summary::-webkit-details-marker {
   display: none;
+}
+.haircut-disclosure::details-content {
+  height: 0;
+  overflow: clip;
+  opacity: 0;
+  transition:
+    height 200ms ease,
+    opacity 160ms ease,
+    content-visibility 200ms ease allow-discrete;
+}
+.haircut-disclosure[open]::details-content {
+  height: auto;
+  opacity: 1;
+}
+.haircut-disclosure-mark {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+.haircut-disclosure[open] .haircut-disclosure-mark {
+  transform: rotate(45deg);
 }
 .haircut-score-toggle {
   display: flex;
@@ -715,8 +746,22 @@
 .haircut-view-switch button[aria-pressed="false"]:hover {
   background: var(--muted);
 }
+.haircut-view-pane {
+  animation: haircut-view-fade 180ms ease both;
+}
+@keyframes haircut-view-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 .haircut-table-view {
-  display: none;
+  display: block;
+}
+.haircut-table-view [data-slot="table-container"] {
+  overflow: visible;
 }
 .haircut-table {
   width: 100%;
@@ -724,86 +769,100 @@
   text-align: left;
   font-size: 13px;
 }
+.haircut-table thead tr,
+.haircut-table tbody tr {
+  border: 0;
+}
 .haircut-table th {
+  position: sticky;
+  top: 88px;
+  z-index: 1;
+  height: auto;
+  padding: 0 10px;
+  background: var(--background);
+  box-shadow: inset 0 -1px 0 var(--border);
   color: var(--muted-foreground);
   font-size: 11px;
   font-weight: 500;
-}
-.haircut-table th,
-.haircut-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .haircut-table th:first-child,
 .haircut-table td:first-child {
   padding-left: 12px;
+  width: 5.5rem;
 }
-.haircut-table tr[data-selected="true"] {
-  background: var(--accent);
+.haircut-table td {
+  height: 56px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  white-space: nowrap;
 }
-.haircut-table tbody tr:hover {
+.haircut-table tbody tr {
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.haircut-table tbody tr:hover,
+.haircut-table tbody tr:has(a:hover) {
   background: var(--muted);
+}
+.haircut-table tbody tr:has([aria-current]) {
+  background: var(--accent);
+  box-shadow: inset 2px 0 0 var(--primary);
 }
 .haircut-table-date {
   display: flex;
   min-height: 44px;
   flex-direction: column;
   justify-content: center;
-  gap: 5px;
-  color: var(--primary);
+  gap: 4px;
+  color: inherit;
 }
-.haircut-table-date:hover > span:first-child {
+.haircut-table-date > span:first-child {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.haircut-table-date > span:last-child {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.haircut-table tbody tr[data-past] .haircut-table-date > span:first-child {
+  color: var(--muted-foreground);
+}
+.haircut-table tbody tr[data-today] .haircut-table-date > span:first-child {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.haircut-day-cards {
-  display: grid;
-  gap: 16px;
-}
-.haircut-day-card {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  column-gap: 16px;
-  padding: 20px 16px 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-.haircut-day-card[aria-current] {
-  border-color: var(--primary);
-  background: var(--accent);
-}
-.haircut-day-card:hover {
-  background: var(--muted);
-}
-.haircut-card-date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-right: 1px solid var(--border);
-  padding-right: 12px;
-}
-.haircut-card-action {
-  grid-column: 1 / -1;
-  display: flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 13px;
+.haircut-table tbody tr:has([aria-current]) .haircut-table-date > span:first-child {
   color: var(--primary);
+}
+.haircut-table [data-align="end"] {
+  width: 3.5rem;
+  text-align: right;
+}
+.haircut-table [data-align="end"] .haircut-sort-header {
+  width: 100%;
+  justify-content: flex-end;
+}
+.haircut-table td[data-hide-below-sm] {
+  max-width: 28ch;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  white-space: normal;
+}
+@media (max-width: 639px) {
+  .haircut-table [data-hide-below-sm] {
+    display: none;
+  }
 }
 #haircut-days,
 #haircut-detail {
   scroll-margin-top: 88px;
-}
-@media (min-width: 768px) {
-  .haircut-table-view {
-    display: block;
-  }
-  .haircut-day-cards {
-    display: none;
-  }
 }
 @media (min-width: 1024px) {
   .haircut-workspace[data-view="list"] {
@@ -822,23 +881,39 @@
 .haircut-sort-header {
   display: flex;
   min-height: 44px;
+  width: 100%;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
   text-align: left;
   cursor: pointer;
 }
 .haircut-sort-header svg {
   flex-shrink: 0;
+  opacity: 0;
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease;
 }
-.haircut-sort-header:hover,
-.haircut-table th[aria-sort] {
+.haircut-sort-header:hover {
+  color: var(--foreground);
+}
+.haircut-sort-header:hover svg {
+  opacity: 0.4;
+}
+.haircut-sort-header[data-active] {
   color: var(--primary);
 }
-.haircut-table th {
-  padding-block: 0;
+.haircut-sort-header[data-active] svg,
+.haircut-sort-header[data-active]:hover svg {
+  opacity: 1;
 }
-.haircut-table td:last-child {
-  white-space: normal;
+.haircut-sort-header[data-direction="desc"] svg {
+  transform: rotate(180deg);
+}
+.haircut-pick[data-past] {
+  color: var(--muted-foreground);
 }
