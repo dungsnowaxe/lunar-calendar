@@ -345,6 +345,9 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  ::details-content {
+    transition-duration: 0.01ms !important;
+  }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
