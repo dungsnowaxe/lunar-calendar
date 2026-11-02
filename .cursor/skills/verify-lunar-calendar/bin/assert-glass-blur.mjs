@@ -2,14 +2,27 @@
 /**
  * Visual gate: high-contrast probe text behind the glass pill/FAB must be at
  * least 5× less sharp inside the glass rect than the same text outside it.
+ *
+ * QA_PROBE=countdown scrolls the live memorial countdown behind the pill and
+ * uses that text as the probe (same Laplacian method). Otherwise a synthetic
+ * high-contrast overlay is injected.
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createClient } from "../../../../apps/web/node_modules/@supabase/supabase-js/dist/index.mjs";
 import { chromium } from "../node_modules/playwright/index.mjs";
 
 const URL = process.env.QA_URL || "http://127.0.0.1:4318";
 const OUT = process.env.QA_OUT || "/opt/cursor/artifacts";
 const MIN_RATIO = 5;
 const EXPECTED_FILTER = "blur(26px) saturate(1.8) brightness(1.05)";
+const PROBE = process.env.QA_PROBE === "countdown" ? "countdown" : "synthetic";
+const COUNTDOWN = process.env.QA_COUNTDOWN || "09/01/2027";
+const SETTLE_MS = Number(process.env.QA_SETTLE_MS || (PROBE === "countdown" ? 2500 : 400));
+const THEMES = (process.env.QA_THEMES || "light,dark")
+  .split(",")
+  .map((item) => item.trim())
+  .filter(Boolean);
+const PREFIX = "[verify-glass-v7]";
 
 function laplacianVariance(gray, width, height) {
   let count = 0;
@@ -112,6 +125,57 @@ function inspectComputed() {
   };
 }
 
+function envGet(text, key) {
+  const line = text
+    .split(/\n/)
+    .reverse()
+    .find((row) => row.trim().startsWith(`${key}=`));
+  if (!line) return "";
+  return line
+    .slice(key.length + 1)
+    .trim()
+    .replace(/^['"]|['"]$/g, "");
+}
+
+async function seedCountdowns() {
+  const envText = await readFile("/workspace/.dev.vars", "utf8").catch(async () =>
+    readFile("/workspace/.env", "utf8"),
+  );
+  const supabase = createClient(
+    envGet(envText, "SUPABASE_URL"),
+    envGet(envText, "SUPABASE_ANON_KEY"),
+  );
+  const seeds = [
+    { title: `${PREFIX} Giỗ ông nội`, lunar_day: 13, lunar_month: 10, notes: null },
+    { title: `${PREFIX} Giỗ bà ngoại`, lunar_day: 13, lunar_month: 10, notes: null },
+    { title: `${PREFIX} Giỗ ông ngoại`, lunar_day: 1, lunar_month: 1, notes: null },
+    { title: `${PREFIX} Giỗ cha`, lunar_day: 10, lunar_month: 3, notes: null },
+    { title: `${PREFIX} Giỗ mẹ`, lunar_day: 20, lunar_month: 7, notes: null },
+    { title: `${PREFIX} Giỗ cô`, lunar_day: 5, lunar_month: 5, notes: null },
+    { title: `${PREFIX} Giỗ chú`, lunar_day: 15, lunar_month: 8, notes: null },
+    { title: `${PREFIX} Giỗ bác`, lunar_day: 2, lunar_month: 12, notes: null },
+  ];
+  const { data: inserted, error } = await supabase.from("memorial_events").insert(seeds).select("id");
+  if (error) throw new Error(`seed insert failed: ${error.message}`);
+  return {
+    supabase,
+    ids: inserted.map((row) => row.id),
+  };
+}
+
+async function hideNavChrome(page) {
+  await page.evaluate(() => {
+    document.getElementById("glass-blur-probe-hide")?.remove();
+    const hide = document.createElement("style");
+    hide.id = "glass-blur-probe-hide";
+    hide.textContent = `
+      .glass-nav-item, .glass-nav-bubble, .glass-refract-rim, .glass-fab svg { visibility: hidden !important; }
+      .glass-fab.is-fab-hidden { opacity: 1 !important; pointer-events: auto !important; translate: 0 !important; }
+    `;
+    document.head.appendChild(hide);
+  });
+}
+
 async function mountProbe(page) {
   await page.evaluate(() => {
     document.getElementById("glass-blur-probe")?.remove();
@@ -137,14 +201,74 @@ async function mountProbe(page) {
     ].join(";");
     probe.textContent = "HHIJ 13/10 AM 18 NGAY GIO CO ".repeat(200);
     document.body.appendChild(probe);
-    const hide = document.createElement("style");
-    hide.id = "glass-blur-probe-hide";
-    hide.textContent = `
-      .glass-nav-item, .glass-nav-bubble, .glass-refract-rim, .glass-fab svg { visibility: hidden !important; }
-      .glass-fab.is-fab-hidden { opacity: 1 !important; pointer-events: auto !important; translate: 0 !important; }
-    `;
-    document.head.appendChild(hide);
   });
+  await hideNavChrome(page);
+}
+
+async function mountCountdownProbe(page, needle) {
+  await page.evaluate((text) => {
+    const article = [...document.querySelectorAll("article")].find((el) =>
+      (el.textContent || "").includes(text),
+    );
+    const dateEl = [...(article?.querySelectorAll("p") ?? [])].find((p) =>
+      (p.textContent || "").includes(text),
+    );
+    const daysEl = article?.querySelector("[data-countdown-value]");
+    if (!dateEl || !daysEl) throw new Error(`countdown ${text} missing`);
+    const dateText = dateEl.textContent?.trim() ?? text;
+    const daysText = (daysEl.textContent || "").replace(/\s+/g, " ").trim();
+    document.getElementById("glass-blur-probe")?.remove();
+    const probe = document.createElement("div");
+    probe.id = "glass-blur-probe";
+    probe.setAttribute("aria-hidden", "true");
+    probe.style.cssText = [
+      "position:fixed",
+      "left:0",
+      "right:0",
+      "bottom:0",
+      "height:240px",
+      "z-index:30",
+      "pointer-events:none",
+      "background:var(--cream-elevated)",
+      "color:var(--ink)",
+      "overflow:hidden",
+      "padding:8px 12px",
+      "display:flex",
+      "flex-wrap:wrap",
+      "align-content:flex-start",
+      "gap:8px 20px",
+    ].join(";");
+    const unit = `${dateText}  ${daysText}  `;
+    for (let i = 0; i < 80; i++) {
+      const date = document.createElement("span");
+      date.style.cssText = "font:500 15px/22px ui-sans-serif,system-ui,sans-serif; font-variant-numeric:tabular-nums;";
+      date.textContent = dateText;
+      const days = document.createElement("span");
+      days.style.cssText = "font:600 24px/24px ui-serif,Georgia,serif;";
+      days.textContent = daysText;
+      probe.append(date, days);
+    }
+    probe.dataset.unit = unit;
+    document.body.appendChild(probe);
+  }, needle);
+  await hideNavChrome(page);
+}
+
+async function scrollCountdownBehindPill(page, needle) {
+  await page.evaluate((text) => {
+    const article = [...document.querySelectorAll("article")].find((el) =>
+      (el.textContent || "").includes(text),
+    );
+    const pill = document.querySelector("nav .glass-pill");
+    const target =
+      [...(article?.querySelectorAll("p") ?? [])].find((p) => (p.textContent || "").includes(text)) ||
+      article?.querySelector("[data-countdown-value]");
+    if (!article || !pill || !target) throw new Error("missing countdown or pill");
+    const t = target.getBoundingClientRect();
+    const p = pill.getBoundingClientRect();
+    window.scrollBy(0, t.top + t.height / 2 - (p.top + p.height / 2));
+  }, needle);
+  await page.waitForTimeout(200);
 }
 
 async function clipOf(page, selector) {
@@ -200,19 +324,28 @@ async function runTheme(browser, theme) {
     viewport: { width: 375, height: 812 },
     colorScheme: theme,
     deviceScaleFactor: 1,
+    ...(PROBE === "countdown" ? { reducedMotion: "reduce" } : {}),
   });
   await context.addInitScript((mode) => localStorage.setItem("theme", mode), theme);
   const page = await context.newPage();
   await page.goto(`${URL}/su-kien`, { waitUntil: "networkidle" });
   await page.locator('nav[aria-label="Điều hướng di động"]').waitFor({ state: "visible" });
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(SETTLE_MS);
+  if (PROBE === "countdown") {
+    await scrollCountdownBehindPill(page, COUNTDOWN);
+    await page.waitForTimeout(200);
+  }
   const computed = await page.evaluate(inspectComputed);
-  await mountProbe(page);
+  if (PROBE === "countdown") {
+    await mountCountdownProbe(page, COUNTDOWN);
+  } else {
+    await mountProbe(page);
+  }
   await page.waitForTimeout(200);
   const pill = await measure(page, "nav .glass-pill", `${theme}-pill`);
   const fab = await measure(page, ".glass-fab", `${theme}-fab`);
   await context.close();
-  return { theme, computed, pill, fab };
+  return { theme, computed, pill, fab, probe: PROBE, countdown: PROBE === "countdown" ? COUNTDOWN : null };
 }
 
 function assertGlass(computed, label) {
@@ -240,10 +373,11 @@ function assertSharp(sample) {
 
 async function main() {
   await mkdir(OUT, { recursive: true });
+  const seeded = PROBE === "countdown" ? await seedCountdowns() : null;
   const browser = await chromium.launch({ headless: true });
   const reports = [];
   try {
-    for (const theme of ["light", "dark"]) {
+    for (const theme of THEMES) {
       const report = await runTheme(browser, theme);
       reports.push(report);
       console.log(
@@ -296,6 +430,7 @@ async function main() {
     }
   } finally {
     await browser.close();
+    if (seeded) await seeded.supabase.from("memorial_events").delete().in("id", seeded.ids);
   }
   await writeFile(`${OUT}/v7-glass-blur-gate.json`, JSON.stringify(reports, null, 2));
   console.log("GLASS_BLUR_GATE_OK");
