@@ -74,12 +74,14 @@ test("a valid batch creates every row in one insert", async () => {
         lunar_day: 10,
         lunar_month: 1,
         notes: "Thắp hương",
+        color_id: null,
       },
       {
         title: "Giỗ bà",
         lunar_day: 15,
         lunar_month: 8,
         notes: null,
+        color_id: null,
       },
     ],
   ]);
@@ -92,6 +94,7 @@ test("a valid batch creates every row in one insert", async () => {
         lunarMonth: 1,
         notes: "Thắp hương",
         createdAt: "2026-09-13T00:00:00.000Z",
+        colorId: null,
       },
       {
         id: "id-2",
@@ -100,6 +103,7 @@ test("a valid batch creates every row in one insert", async () => {
         lunarMonth: 8,
         notes: null,
         createdAt: "2026-09-13T00:00:00.000Z",
+        colorId: null,
       },
     ],
   });

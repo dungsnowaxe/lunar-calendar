@@ -7,6 +7,10 @@
 @import "@fontsource/be-vietnam-pro/700.css";
 @import "@fontsource/noto-serif/vietnamese-400.css";
 @import "@fontsource/noto-serif/latin-400.css";
+@import "@fontsource/noto-serif/vietnamese-600.css";
+@import "@fontsource/noto-serif/latin-600.css";
+@import "@fontsource/noto-serif/vietnamese-700.css";
+@import "@fontsource/noto-serif/latin-700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -44,8 +48,14 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-lacquer);
+    outline-offset: 2px;
+  }
+
+  html,
+  body {
+    font-size: 15.5px;
+    line-height: 1.5;
   }
 }
 
@@ -95,6 +105,31 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-cream: var(--cream);
+  --color-cream-elevated: var(--cream-elevated);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-lacquer: var(--lacquer);
+  --color-lacquer-deep: var(--lacquer-deep);
+  --color-marigold: var(--marigold);
+  --color-coral: var(--coral);
+  --color-border-warm: var(--border-warm);
+  --color-mem-persimmon: var(--mem-persimmon);
+  --color-mem-marigold: var(--mem-marigold);
+  --color-mem-olive: var(--mem-olive);
+  --color-mem-jade: var(--mem-jade);
+  --color-mem-indigo: var(--mem-indigo);
+  --color-mem-plum: var(--mem-plum);
+  --color-mem-rose: var(--mem-rose);
+  --color-mem-moss: var(--mem-moss);
+  --color-score-good: var(--score-good);
+  --color-score-good-soft: var(--score-good-soft);
+  --color-score-amber: var(--score-amber);
+  --color-score-amber-soft: var(--score-amber-soft);
+  --color-score-bad: var(--score-bad);
+  --color-score-bad-soft: var(--score-bad-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -197,46 +232,100 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Warm almanac: paper, ink, and a restrained vermilion accent. */
+/* Warm cream / lacquer-red almanac tokens (oklch). */
 :root {
   color-scheme: light;
-  --background: #f7f3eb;
-  --foreground: #302b27;
-  --card: #fbf8f2;
-  --card-foreground: #302b27;
-  --popover: #fbf8f2;
-  --popover-foreground: #302b27;
-  --primary: #8b3931;
-  --primary-foreground: #fffaf4;
-  --muted: #eee7dc;
-  --muted-foreground: #70665d;
-  --secondary: #eee7dc;
-  --secondary-foreground: #302b27;
-  --accent: #f2e2da;
-  --accent-foreground: #8b3931;
-  --border: #ded4c6;
-  --input: #ded4c6;
-  --ring: #8b3931;
+  --cream: oklch(0.975 0.012 85);
+  --cream-elevated: oklch(0.99 0.008 85);
+  --paper: oklch(0.96 0.02 85);
+  --ink: oklch(0.28 0.03 45);
+  --ink-muted: oklch(0.45 0.03 45);
+  --ink-faint: oklch(0.55 0.025 45);
+  --lacquer: oklch(0.48 0.155 25);
+  --lacquer-deep: oklch(0.4 0.15 25);
+  --marigold: oklch(0.72 0.14 55);
+  --coral: oklch(0.68 0.14 40);
+  --border-warm: oklch(0.88 0.02 70);
+  --mem-persimmon: oklch(0.58 0.145 42);
+  --mem-marigold: oklch(0.66 0.135 78);
+  --mem-olive: oklch(0.52 0.09 118);
+  --mem-jade: oklch(0.52 0.095 185);
+  --mem-indigo: oklch(0.48 0.085 272);
+  --mem-plum: oklch(0.5 0.115 340);
+  --mem-rose: oklch(0.58 0.12 12);
+  --mem-moss: oklch(0.5 0.085 142);
+  --score-good: oklch(0.58 0.12 145);
+  --score-good-soft: oklch(0.92 0.04 145);
+  --score-amber: oklch(0.7 0.13 70);
+  --score-amber-soft: oklch(0.93 0.05 70);
+  --score-bad: oklch(0.55 0.16 25);
+  --score-bad-soft: oklch(0.93 0.04 25);
+  --shadow-card: 0 1px 2px oklch(0.35 0.03 45 / 0.04), 0 8px 24px oklch(0.35 0.03 45 / 0.06);
+  --shadow-float: 0 4px 24px oklch(0.35 0.03 45 / 0.12), 0 1px 2px oklch(0.35 0.03 45 / 0.06);
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--cream-elevated);
+  --card-foreground: var(--ink);
+  --popover: var(--cream-elevated);
+  --popover-foreground: var(--ink);
+  --primary: var(--lacquer);
+  --primary-foreground: oklch(0.99 0.008 85);
+  --muted: var(--paper);
+  --muted-foreground: var(--ink-muted);
+  --secondary: var(--paper);
+  --secondary-foreground: var(--ink);
+  --accent: color-mix(in oklch, var(--lacquer) 12%, var(--cream));
+  --accent-foreground: var(--lacquer);
+  --border: var(--border-warm);
+  --input: var(--border-warm);
+  --ring: var(--lacquer);
 }
 .dark {
   color-scheme: dark;
-  --background: #211d1a;
-  --foreground: #f3ece2;
-  --card: #29231f;
-  --card-foreground: #f3ece2;
-  --popover: #29231f;
-  --popover-foreground: #f3ece2;
-  --primary: #e8a197;
-  --primary-foreground: #291b18;
-  --muted: #342c26;
-  --muted-foreground: #bcafa0;
-  --secondary: #342c26;
-  --secondary-foreground: #f3ece2;
-  --accent: #49312c;
-  --accent-foreground: #efb1a6;
-  --border: #493d33;
-  --input: #493d33;
-  --ring: #e8a197;
+  --cream: oklch(0.18 0.02 45);
+  --cream-elevated: oklch(0.22 0.022 45);
+  --paper: oklch(0.24 0.025 50);
+  --ink: oklch(0.93 0.015 85);
+  --ink-muted: oklch(0.75 0.02 70);
+  --ink-faint: oklch(0.62 0.02 60);
+  --lacquer: oklch(0.62 0.16 28);
+  --lacquer-deep: oklch(0.55 0.15 25);
+  --marigold: oklch(0.76 0.13 55);
+  --coral: oklch(0.72 0.13 40);
+  --border-warm: oklch(0.32 0.025 50);
+  --mem-persimmon: oklch(0.74 0.13 42);
+  --mem-marigold: oklch(0.78 0.12 78);
+  --mem-olive: oklch(0.72 0.09 118);
+  --mem-jade: oklch(0.72 0.09 185);
+  --mem-indigo: oklch(0.72 0.08 272);
+  --mem-plum: oklch(0.72 0.11 340);
+  --mem-rose: oklch(0.74 0.11 12);
+  --mem-moss: oklch(0.72 0.08 142);
+  --score-good: oklch(0.72 0.12 145);
+  --score-good-soft: oklch(0.28 0.04 145);
+  --score-amber: oklch(0.78 0.12 70);
+  --score-amber-soft: oklch(0.28 0.04 70);
+  --score-bad: oklch(0.68 0.15 25);
+  --score-bad-soft: oklch(0.28 0.05 25);
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
+  --shadow-float: 0 4px 24px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.3);
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--cream-elevated);
+  --card-foreground: var(--ink);
+  --popover: var(--cream-elevated);
+  --popover-foreground: var(--ink);
+  --primary: var(--lacquer);
+  --primary-foreground: oklch(0.18 0.02 45);
+  --muted: var(--paper);
+  --muted-foreground: var(--ink-muted);
+  --secondary: var(--paper);
+  --secondary-foreground: var(--ink);
+  --accent: color-mix(in oklch, var(--lacquer) 16%, var(--cream));
+  --accent-foreground: var(--lacquer);
+  --border: var(--border-warm);
+  --input: var(--border-warm);
+  --ring: var(--lacquer);
 }
 .almanac-calendar,
 .almanac-today,
@@ -478,6 +567,55 @@
 .theme-picker button:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.paper-card {
+  border-radius: 28px;
+  background: var(--cream-elevated);
+  border: 1px solid var(--border-warm);
+  box-shadow: var(--shadow-card);
+}
+
+.bloc-paper {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, oklch(0.9 0.03 70 / 0.35), transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+.dark .bloc-paper {
+  background-image:
+    radial-gradient(ellipse at 20% 0%, oklch(0.3 0.03 50 / 0.4), transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+.perforation {
+  background-image: radial-gradient(circle, var(--border-warm) 1.2px, transparent 1.3px);
+  background-size: 10px 4px;
+  background-repeat: repeat-x;
+  background-position: center;
+  height: 4px;
+}
+
+.ticket-notch {
+  position: relative;
+}
+.ticket-notch::before,
+.ticket-notch::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cream);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+.ticket-notch::before {
+  left: -8px;
+}
+.ticket-notch::after {
+  right: -8px;
 }
 
 /* Haircut finder: an open almanac with one clear date selection. */

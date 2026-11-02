@@ -1,82 +1,79 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { formatSolar, nextOccurrences, solarToJdn, solarToday, type SolarDate } from "@lunar/core";
-import { NumberTicker } from "~/components/ui/number-ticker";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { eventColorVar } from "~/lib/event-colors";
-import { daysBetween, eventRuleLabel } from "~/lib/labels";
-import type { MemorialEvent } from "~/server/events";
+import { Plus } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+
+import { EmptyMemorials } from "~/components/empty-memorials";
+import { MemorialRow } from "~/components/memorial-ticket";
+import { buttonVariants } from "~/components/ui/button";
+import { COPY } from "~/lib/copy";
+import type { ColoredMemorial } from "~/lib/memorial-colors";
+import { sortByNextOccurrence } from "~/lib/memorial-sort";
+import { solarToday } from "@lunar/core";
+import { cn } from "~/lib/utils";
 
 interface UpcomingEventsProps {
-  events: MemorialEvent[];
-  /** How many occurrences to show. */
+  events: ColoredMemorial[];
   count?: number;
-  onAdd: () => void;
+  layout: "desktop" | "mobile";
 }
 
-export function UpcomingEvents({ events, count = 5, onAdd }: UpcomingEventsProps) {
+export function UpcomingEvents({ events, count = 5, layout }: UpcomingEventsProps) {
   const today = solarToday();
+  const upcoming = sortByNextOccurrence(events, today).slice(0, count);
+  const navigate = useNavigate();
 
-  const upcoming = events
-    .map((event) => {
-      const [next] = nextOccurrences(
-        { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth },
-        today,
-        1,
-      );
-      return next ? { event, date: next } : null;
-    })
-    .filter((item): item is { event: MemorialEvent; date: SolarDate } => item !== null)
-    .sort((a, b) => solarToJdn(a.date) - solarToJdn(b.date))
-    .slice(0, count);
+  if (layout === "desktop") {
+    return (
+      <section className="paper-card p-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h3 className="font-heading text-lg font-semibold whitespace-nowrap">
+            {COPY.upcomingTitle}
+          </h3>
+          <Link
+            to="/su-kien"
+            search={{ add: "1" }}
+            aria-label={COPY.addMemorial}
+            title={COPY.addMemorial}
+            className={cn(buttonVariants({ size: "icon-lg" }), "size-10 shrink-0 rounded-full")}
+          >
+            <Plus className="size-4" />
+          </Link>
+        </div>
+        {upcoming.length === 0 ? (
+          <EmptyMemorials variant="mini" />
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {upcoming.map((event) => (
+              <li key={event.id}>
+                <MemorialRow event={event} onClick={() => navigate({ to: "/su-kien" })} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    );
+  }
 
   return (
-    <Card className="almanac-upcoming">
-      <CardHeader>
-        <CardTitle>Ngày giỗ sắp tới</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        {upcoming.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Chưa có sự kiện nào. Hãy thêm ngày giỗ đầu tiên của gia đình bạn.
-          </p>
-        )}
-        {upcoming.map(({ event, date }) => {
-          const days = daysBetween(today, date);
-          return (
-            <div
-              key={event.id}
-              className="flex items-start justify-between gap-3 border-l-[3px] pl-3"
-              style={{ borderLeftColor: eventColorVar(event.id) }}
-            >
-              <div className="flex min-w-0 flex-col">
-                <span className="truncate text-base font-medium">{event.title}</span>
-                <span className="text-sm text-muted-foreground">
-                  {eventRuleLabel(event)}, {formatSolar(date)}
-                </span>
-              </div>
-              {days === 0 ? (
-                <Badge>Hôm nay</Badge>
-              ) : (
-                <span className="flex shrink-0 items-baseline gap-1 text-sm text-muted-foreground">
-                  Còn
-                  <NumberTicker
-                    value={days}
-                    className="text-sm font-semibold text-foreground tabular-nums"
-                  />
-                  ngày
-                </span>
-              )}
-            </div>
-          );
-        })}
-        <Button className="mt-2 min-h-11 w-full rounded-lg" onClick={onAdd}>
-          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
-          Thêm ngày giỗ
-        </Button>
-      </CardContent>
-    </Card>
+    <section>
+      <h3 className="mb-3 font-heading text-lg font-semibold">{COPY.upcomingTitle}</h3>
+      {upcoming.length === 0 ? (
+        <EmptyMemorials variant="mini" />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {upcoming.map((event) => (
+            <li key={event.id}>
+              <MemorialRow event={event} onClick={() => navigate({ to: "/su-kien" })} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        to="/su-kien"
+        search={{ add: "1" }}
+        className={cn(buttonVariants(), "mt-4 flex min-h-11 w-full rounded-full")}
+      >
+        {COPY.addMemorialButton}
+      </Link>
+    </section>
   );
 }

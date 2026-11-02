@@ -20,3 +20,8 @@ export function useMinWidth(px: number): boolean {
 export function useIsDesktop(): boolean {
   return useMinWidth(1024);
 }
+
+/** Dialog / Drawer breakpoint — matches Tailwind `md` (768px). */
+export function useIsMd(): boolean {
+  return useMinWidth(768);
+}
