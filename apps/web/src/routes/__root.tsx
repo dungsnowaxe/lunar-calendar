@@ -3,14 +3,10 @@ import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/r
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Moon02Icon,
-  Calendar03Icon,
-  CalendarCheckIn01Icon,
-  StarIcon,
-} from "@hugeicons/core-free-icons";
+import { Moon02Icon } from "@hugeicons/core-free-icons";
 import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
 import { NotFound } from "../components/NotFound";
+import { MobileGlassNav } from "~/components/mobile-glass-nav";
 import { ThemeSwitch } from "~/components/theme-switch";
 import { Toaster } from "../components/ui/sonner";
 import appCss from "../styles/app.css?url";
@@ -24,7 +20,7 @@ export const Route = createRootRoute({
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       ...seo({
         title: "Lịch Âm | Nhớ ngày giỗ, không bỏ lỡ",
@@ -89,20 +85,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           {children}
-          <nav aria-label="Điều hướng di động" className="mobile-navigation md:hidden">
-            <NavLink to="/">
-              <HugeiconsIcon icon={Calendar03Icon} />
-              Lịch
-            </NavLink>
-            <NavLink to="/su-kien">
-              <HugeiconsIcon icon={CalendarCheckIn01Icon} />
-              Sự kiện
-            </NavLink>
-            <NavLink to="/ngay-tot-cat-toc">
-              <HugeiconsIcon icon={StarIcon} />
-              Ngày tốt
-            </NavLink>
-          </nav>
+          <MobileGlassNav />
         </div>
         <Toaster position="top-center" richColors />
         <TanStackRouterDevtools position="bottom-right" />

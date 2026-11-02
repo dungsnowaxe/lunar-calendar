@@ -262,6 +262,8 @@
   --score-bad-soft: oklch(0.93 0.04 25);
   --shadow-card: 0 1px 2px oklch(0.35 0.03 45 / 0.04), 0 8px 24px oklch(0.35 0.03 45 / 0.06);
   --shadow-float: 0 4px 24px oklch(0.35 0.03 45 / 0.12), 0 1px 2px oklch(0.35 0.03 45 / 0.06);
+  --shadow-glass: 0 8px 32px oklch(0.35 0.03 45 / 0.14), inset 0 1px 0 oklch(1 0 0 / 0.55);
+  --mobile-nav-height: 68px;
   --background: var(--cream);
   --foreground: var(--ink);
   --card: var(--cream-elevated);
@@ -309,6 +311,7 @@
   --score-bad-soft: oklch(0.28 0.05 25);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
   --shadow-float: 0 4px 24px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-glass: 0 8px 32px oklch(0 0 0 / 0.4), inset 0 1px 0 oklch(1 0 0 / 0.12);
   --background: var(--cream);
   --foreground: var(--ink);
   --card: var(--cream-elevated);
@@ -380,36 +383,107 @@
   border-left: 1px solid var(--border);
   padding-left: 28px;
 }
-.mobile-navigation {
-  position: fixed;
-  bottom: 0;
-  inset-inline: 0;
-  z-index: 40;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--border);
-  background: var(--background);
-  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+/* Liquid-glass floating chrome — mobile bottom pill only. */
+.glass-pill {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow: var(--shadow-glass);
 }
-.mobile-navigation a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
+.glass-pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    oklch(1 0 0 / 0.75) 0%,
+    oklch(1 0 0 / 0.15) 40%,
+    oklch(0.7 0.05 40 / 0.2) 100%
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
 }
-.mobile-navigation svg {
-  width: 22px;
-  height: 22px;
+.dark .glass-pill::before {
+  background: linear-gradient(
+    145deg,
+    oklch(1 0 0 / 0.28) 0%,
+    oklch(1 0 0 / 0.05) 40%,
+    oklch(0.6 0.08 30 / 0.25) 100%
+  );
 }
-@media (min-width: 768px) {
-  .mobile-navigation {
-    display: none;
+.glass-pill-nav-mobile {
+  background: linear-gradient(
+    165deg,
+    oklch(0.985 0.01 85 / 0.97) 0%,
+    oklch(0.97 0.018 85 / 0.95) 50%,
+    oklch(0.955 0.022 80 / 0.96) 100%
+  );
+  backdrop-filter: blur(56px) saturate(2.6);
+  -webkit-backdrop-filter: blur(56px) saturate(2.6);
+}
+.dark .glass-pill-nav-mobile {
+  background: linear-gradient(
+    165deg,
+    oklch(0.26 0.022 45 / 0.97) 0%,
+    oklch(0.18 0.02 45 / 0.98) 55%,
+    oklch(0.14 0.018 45 / 0.98) 100%
+  );
+  backdrop-filter: blur(56px) saturate(2.2);
+  -webkit-backdrop-filter: blur(56px) saturate(2.2);
+}
+.glass-pill-nav-mobile a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--lacquer);
+  transform: translateX(-50%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-pill-nav-mobile,
+  .dark .glass-pill-nav-mobile {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .glass-pill-nav-mobile {
+    background: var(--cream-elevated);
+  }
+  .dark .glass-pill-nav-mobile {
+    background: var(--cream-elevated);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-pill-nav-mobile,
+  .dark .glass-pill-nav-mobile {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .glass-pill-nav-mobile {
+    background: var(--cream-elevated);
+  }
+  .dark .glass-pill-nav-mobile {
+    background: var(--cream-elevated);
   }
 }
 @media (max-width: 767px) {
   main {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(
+      var(--mobile-nav-height) + 16px + env(safe-area-inset-bottom, 0px)
+    ) !important;
   }
 }
 @media (max-width: 1023px) {
@@ -519,13 +593,6 @@
   .almanac-calendar [data-slot="button"][aria-label] {
     min-width: 36px;
     width: 36px;
-  }
-  .mobile-navigation a {
-    border-radius: 0;
-  }
-  .mobile-navigation a[aria-current="page"] {
-    background: transparent;
-    border-bottom: 2px solid var(--primary);
   }
 }
 
