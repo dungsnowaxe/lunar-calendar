@@ -521,13 +521,27 @@
   position: relative;
   z-index: 1;
 }
+/* Unlayered so this wins over utility `relative`/`static` on the inner FAB. */
+.glass-fab-slot {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  z-index: 10;
+  width: 56px;
+  height: 56px;
+  pointer-events: none;
+}
 .glass-fab {
   position: relative;
   isolation: isolate;
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
   background-color: var(--glass-tint);
   color: var(--color-ink);
   box-shadow: var(--shadow-glass);
   border: 0;
+  pointer-events: auto;
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
     brightness(var(--glass-brightness));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))

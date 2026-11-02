@@ -41,21 +41,23 @@ export function MobileGlassNav() {
     >
       <div className="relative w-full max-w-sm">
         {showFab ? (
-          <Link
-            to="/su-kien"
-            search={{ add: "1" }}
-            aria-label={COPY.addMemorial}
-            aria-hidden={!fabVisible}
-            tabIndex={fabVisible ? 0 : -1}
-            data-fab-visible={fabVisible ? "1" : "0"}
-            className={cn(
-              "glass-fab pointer-events-auto absolute right-0 bottom-[calc(100%+12px)] flex size-[56px] min-h-[56px] min-w-[56px] items-center justify-center rounded-full md:hidden",
-              !fabVisible && "is-fab-hidden",
-            )}
-          >
-            <span aria-hidden className="glass-refract-rim" />
-            <Plus className="h-6 w-6" strokeWidth={2.6} aria-hidden />
-          </Link>
+          <div className="glass-fab-slot md:hidden" data-fab-slot>
+            <Link
+              to="/su-kien"
+              search={{ add: "1" }}
+              aria-label={COPY.addMemorial}
+              aria-hidden={!fabVisible}
+              tabIndex={fabVisible ? 0 : -1}
+              data-fab-visible={fabVisible ? "1" : "0"}
+              className={cn(
+                "glass-fab flex size-[56px] min-h-[56px] min-w-[56px] items-center justify-center rounded-full",
+                !fabVisible && "is-fab-hidden",
+              )}
+            >
+              <span aria-hidden className="glass-refract-rim" />
+              <Plus className="h-6 w-6" strokeWidth={2.6} aria-hidden />
+            </Link>
+          </div>
         ) : null}
         <div className="glass-pill glass-pill-nav-mobile pointer-events-auto relative grid w-full grid-cols-3 gap-0.5 rounded-full p-1.5">
           <span aria-hidden className="glass-refract-rim" />

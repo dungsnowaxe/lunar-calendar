@@ -3,15 +3,23 @@ import { useEffect, useState } from "react";
 const FAB_SIZE = 56;
 const NAV_SELECTOR = 'nav[aria-label="Điều hướng di động"]';
 
-/** Match MobileGlassNav: FAB is right-aligned to the pill, 12px above it. */
-function fabRestingRect(): DOMRect {
+function isFabHidden(fab: HTMLElement): boolean {
+  return (
+    fab.classList.contains("is-fab-hidden") ||
+    fab.getAttribute("data-fab-visible") === "0" ||
+    Number(getComputedStyle(fab).opacity) < 0.05
+  );
+}
+
+/** Live FAB box when it is on screen; otherwise the right-aligned slot above the pill. */
+function fabMeasureRect(): DOMRect {
   const fab = document.querySelector(".glass-fab");
-  if (fab instanceof HTMLElement) {
-    const box = fab.getBoundingClientRect();
-    const hidden = fab.classList.contains("is-fab-hidden");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dy = hidden && !reduce ? -12 : 0;
-    return new DOMRect(box.left, box.top + dy, box.width || FAB_SIZE, box.height || FAB_SIZE);
+  if (fab instanceof HTMLElement && !isFabHidden(fab)) {
+    return fab.getBoundingClientRect();
+  }
+  const slot = document.querySelector("[data-fab-slot]");
+  if (slot instanceof HTMLElement) {
+    return slot.getBoundingClientRect();
   }
   const nav = document.querySelector(NAV_SELECTOR);
   const pill = nav?.querySelector(".glass-pill");
@@ -51,12 +59,17 @@ function obstructingSelector(): string {
 }
 
 export function fabLaneIsClear(): boolean {
-  const fab = fabRestingRect();
+  const fabEl = document.querySelector(".glass-fab");
+  const fab =
+    fabEl instanceof HTMLElement && !isFabHidden(fabEl)
+      ? fabEl.getBoundingClientRect()
+      : fabMeasureRect();
   const nodes = document.querySelectorAll(obstructingSelector());
   for (const el of nodes) {
     if (!(el instanceof HTMLElement)) continue;
     if (el.closest(NAV_SELECTOR)) continue;
     if (el.classList.contains("glass-fab") || el.closest(".glass-fab")) continue;
+    if (el.closest("[data-fab-slot]")) continue;
     const box = el.getBoundingClientRect();
     if (box.width < 1 || box.height < 1) continue;
     if (box.bottom < 0 || box.top > window.innerHeight) continue;
@@ -67,7 +80,7 @@ export function fabLaneIsClear(): boolean {
 
 /**
  * Hide the FAB while the page is scrolling. On idle, reappear only when the
- * resting FAB rect is clear of countdowns, titles, and buttons.
+ * measured FAB rect is clear of countdowns, titles, and buttons.
  */
 export function useFabScrollVisibility(): boolean {
   const [visible, setVisible] = useState(true);
