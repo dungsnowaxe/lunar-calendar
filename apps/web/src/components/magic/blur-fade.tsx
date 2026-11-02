@@ -1,6 +1,7 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
+import { usePrefersLessMotion } from "~/hooks/use-prefers-less-motion";
 import { cn } from "~/lib/utils";
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -16,7 +17,7 @@ export function BlurFade({
   delay?: number;
   yOffset?: number;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = usePrefersLessMotion();
   if (reduce) {
     return (
       <div className={className} style={{ animationDuration: "120ms" }}>
