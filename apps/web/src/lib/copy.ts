@@ -18,6 +18,7 @@ export const COPY = {
   emptyTitle: "Chưa có ngày giỗ nào",
   emptyBody:
     "Thêm ngày giỗ ông bà, cha mẹ theo âm lịch — mình sẽ nhắc bạn trước mỗi năm, không để bạn quên.",
+  emptyBodyMini: "Thêm ngày giỗ để mình nhắc bạn mỗi năm.",
   emptyCta: "+ Thêm ngày giỗ đầu tiên",
   emptyCtaLabel: "Thêm ngày giỗ đầu tiên",
   formAddTitle: "Thêm sự kiện giỗ",

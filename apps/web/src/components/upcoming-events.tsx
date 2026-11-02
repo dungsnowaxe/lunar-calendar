@@ -33,7 +33,7 @@ export function UpcomingEvents({ events, count = 5, layout }: UpcomingEventsProp
             search={{ add: "1" }}
             aria-label={COPY.addMemorial}
             title={COPY.addMemorial}
-            className={cn(buttonVariants({ size: "icon-lg" }), "size-10 shrink-0 rounded-full")}
+            className={cn(buttonVariants({ size: "icon-lg" }), "size-11 shrink-0 rounded-full")}
           >
             <Plus className="size-4" />
           </Link>

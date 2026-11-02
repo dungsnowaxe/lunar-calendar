@@ -31,7 +31,7 @@ export function MemorialTicket({
   const daysLeft = next ? daysBetween(today, next) : 0;
 
   return (
-    <article className={cn("paper-card relative overflow-hidden rounded-[24px]", className)}>
+    <article className={cn("paper-card relative overflow-hidden", className)}>
       <span
         className="absolute top-0 bottom-0 left-0 w-1.5"
         style={{ background: accent }}

@@ -14,15 +14,10 @@ export function EmptyMemorials({
 }) {
   if (variant === "mini") {
     return (
-      <div
-        className={cn(
-          "rounded-[20px] border border-dashed border-[var(--border-warm)] p-5 text-center",
-          className,
-        )}
-      >
+      <div className={cn("px-1 py-2 text-center", className)}>
         <MoonPhase lunarDay={15} size={48} face className="mx-auto mb-2" />
         <p className="text-[14px] font-medium text-[var(--ink)]">{COPY.emptyTitle}</p>
-        <p className="mt-1 text-[13px] text-[var(--ink-muted)]">{COPY.emptyBody}</p>
+        <p className="mt-1 text-[13px] text-[var(--ink-muted)]">{COPY.emptyBodyMini}</p>
       </div>
     );
   }
