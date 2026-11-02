@@ -53,7 +53,7 @@ function HomePage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8">
+    <main className="page-pad-mobile-nav mx-auto w-full max-w-6xl flex-1 px-4 pt-6 md:px-6 md:pt-8">
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px] lg:gap-8">
         <BlurFade>
           <MonthCalendar
