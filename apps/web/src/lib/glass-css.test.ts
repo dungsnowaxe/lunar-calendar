@@ -36,3 +36,8 @@ test("pill and FAB apply backdrop-filter through --glass-backdrop, not a literal
     assert.doesNotMatch(body, /isolation:\s*isolate/);
   }
 });
+
+test("dark glass tint is opaque enough that 15px countdown type cannot survive 26px blur", () => {
+  assert.match(css, /--glass-tint:\s*oklch\(0\.2 0\.012 45 \/ 0\.72\)/);
+  assert.match(css, /--glass-tint-nav:\s*oklch\(0\.16 0\.01 45 \/ 0\.88\)/);
+});

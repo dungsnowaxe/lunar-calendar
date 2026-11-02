@@ -324,8 +324,11 @@
   --score-bad-soft: oklch(0.28 0.05 25);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
   --shadow-float: 0 4px 24px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.3);
-  --glass-tint: oklch(0.27 0.015 45 / 0.4);
-  --glass-tint-nav: var(--glass-tint);
+  /* 0.4 left 15px countdown glyphs readable through dark events glass.
+     Residual contrast after blur is (1-α)×ink; the nav pill needs α≈0.88
+     to crush that leftover. FAB can stay a bit more open. */
+  --glass-tint: oklch(0.2 0.012 45 / 0.72);
+  --glass-tint-nav: oklch(0.16 0.01 45 / 0.88);
   --glass-halo: oklch(0.22 0.015 45);
   --glass-blur: 26px;
   --glass-saturate: 1.8;
@@ -630,7 +633,7 @@
   .dark .glass-pill,
   .dark .glass-pill-nav-mobile,
   .dark .glass-fab {
-    background-color: oklch(0.27 0.015 45 / 0.96);
+    background-color: oklch(0.2 0.012 45 / 0.96);
   }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -645,7 +648,7 @@
   .dark .glass-pill,
   .dark .glass-pill-nav-mobile,
   .dark .glass-fab {
-    background-color: oklch(0.27 0.015 45 / 0.96) !important;
+    background-color: oklch(0.2 0.012 45 / 0.96) !important;
   }
 }
 @media (max-width: 1023px) {
