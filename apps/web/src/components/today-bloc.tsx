@@ -20,7 +20,7 @@ import { chuSuDuocChon } from "~/lib/chu-su";
 import { useChuSu } from "~/hooks/use-chu-su";
 import { usePrefersLessMotion } from "~/hooks/use-prefers-less-motion";
 import { weekdayLong } from "~/lib/labels";
-import { memorialColorCss, type MemorialColorId } from "~/lib/memorial-colors";
+import { memorialColorCss } from "~/lib/memorial-colors";
 import { DANH_GIA_LOAI, lyDoChinh } from "~/lib/ngay-tot";
 import { cn } from "~/lib/utils";
 
@@ -29,7 +29,6 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 export interface DayMemorial {
   id: string;
   title: string;
-  colorId: MemorialColorId;
 }
 
 export function TodayBloc({
@@ -178,7 +177,7 @@ function MemorialsThatDay({ memorials }: { memorials: DayMemorial[] }) {
           <li key={memorial.id} className="flex items-center gap-2 text-[14px] text-[var(--ink)]">
             <span
               className="h-2 w-2 shrink-0 rounded-full"
-              style={{ background: memorialColorCss(memorial.colorId) }}
+              style={{ background: memorialColorCss(memorial.id) }}
               aria-hidden
             />
             <span>{memorial.title}</span>
@@ -199,12 +198,12 @@ export function DayDetail({
   bare?: boolean;
 }) {
   const today = solarToday();
+  const { state } = useChuSu();
   if (compareSolar(date, today) === 0) {
     return <TodayBloc date={date} bare={bare} memorials={memorials} />;
   }
 
   const lunar = solarToLunar(date);
-  const { state } = useChuSu();
   const quality = scoreDay(date, "cat-toc", chuSuDuocChon(state));
   const reason = lyDoChinh(quality);
 

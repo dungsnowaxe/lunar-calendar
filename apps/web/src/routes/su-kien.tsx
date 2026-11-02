@@ -21,10 +21,8 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { COPY, deleteBody } from "~/lib/copy";
-import { useColoredMemorials } from "~/hooks/use-colored-memorials";
 import { sortByNextOccurrence } from "~/lib/memorial-sort";
-import { deleteEventFn, listEventsFn } from "~/server/events";
-import type { ColoredMemorial } from "~/lib/memorial-colors";
+import { deleteEventFn, listEventsFn, type MemorialEvent } from "~/server/events";
 
 export const Route = createFileRoute("/su-kien")({
   validateSearch: z.object({
@@ -38,12 +36,11 @@ function EventsPage() {
   const router = useRouter();
   const { add } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const rawEvents = Route.useLoaderData();
-  const events = useColoredMemorials(rawEvents);
+  const events = Route.useLoaderData();
   const sorted = sortByNextOccurrence(events, solarToday());
   const [formOpen, setFormOpen] = useState(add === "1");
-  const [editing, setEditing] = useState<ColoredMemorial | undefined>(undefined);
-  const [deleting, setDeleting] = useState<ColoredMemorial | undefined>(undefined);
+  const [editing, setEditing] = useState<MemorialEvent | undefined>(undefined);
+  const [deleting, setDeleting] = useState<MemorialEvent | undefined>(undefined);
 
   function refresh() {
     return router.invalidate();
@@ -103,7 +100,6 @@ function EventsPage() {
           }
         }}
         event={editing}
-        usedColors={events.map((event) => event.colorId)}
         onSaved={refresh}
       />
 
@@ -117,7 +113,7 @@ function DeleteConfirm({
   onClose,
   onDeleted,
 }: {
-  event: ColoredMemorial | undefined;
+  event: MemorialEvent | undefined;
   onClose: () => void;
   onDeleted: () => void | Promise<void>;
 }) {

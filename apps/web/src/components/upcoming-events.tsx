@@ -5,13 +5,13 @@ import { EmptyMemorials } from "~/components/empty-memorials";
 import { MemorialRow } from "~/components/memorial-ticket";
 import { buttonVariants } from "~/components/ui/button";
 import { COPY } from "~/lib/copy";
-import type { ColoredMemorial } from "~/lib/memorial-colors";
 import { sortByNextOccurrence } from "~/lib/memorial-sort";
+import type { MemorialEvent } from "~/server/events";
 import { solarToday } from "@lunar/core";
 import { cn } from "~/lib/utils";
 
 interface UpcomingEventsProps {
-  events: ColoredMemorial[];
+  events: MemorialEvent[];
   count?: number;
   layout: "desktop" | "mobile";
 }

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
@@ -31,27 +31,12 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { useIsMd } from "~/hooks/use-min-width";
 import { COPY } from "~/lib/copy";
-import {
-  MEMORIAL_COLORS,
-  memorialColorCss,
-  nextUnusedMemorialColor,
-  type MemorialColorId,
-} from "~/lib/memorial-colors";
-import { cn } from "~/lib/utils";
-import { createEventsFn, updateEventFn } from "~/server/events";
+import { createEventsFn, updateEventFn, type MemorialEvent } from "~/server/events";
 
 interface EventFormOverlayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  event?: {
-    id: string;
-    title: string;
-    lunarDay: number;
-    lunarMonth: number;
-    notes: string | null;
-    colorId: MemorialColorId;
-  };
-  usedColors: MemorialColorId[];
+  event?: Pick<MemorialEvent, "id" | "title" | "lunarDay" | "lunarMonth" | "notes">;
   onSaved: () => void | Promise<void>;
 }
 
@@ -73,22 +58,13 @@ function newDateRow(day = DEFAULT_DAY, month = DEFAULT_MONTH): DateRow {
   return { key: String(rowKey), lunarDay: day, lunarMonth: month };
 }
 
-export function EventFormOverlay({
-  open,
-  onOpenChange,
-  event,
-  usedColors,
-  onSaved,
-}: EventFormOverlayProps) {
+export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFormOverlayProps) {
   const isMd = useIsMd();
   const formId = useId();
   const isEdit = event != null;
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [colorId, setColorId] = useState<MemorialColorId>(
-    () => event?.colorId ?? nextUnusedMemorialColor(usedColors),
-  );
   const [dates, setDates] = useState<DateRow[]>(() => [newDateRow()]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +80,6 @@ export function EventFormOverlay({
     saveIdRef.current += 1;
     setTitle("");
     setNotes("");
-    setColorId(nextUnusedMemorialColor(usedColors));
     setDates([newDateRow()]);
     setSavePending(false);
     setError(null);
@@ -117,18 +92,12 @@ export function EventFormOverlay({
     // oxlint-disable-next-line react/set-state-in-effect
     setTitle(event?.title ?? "");
     setNotes(event?.notes ?? "");
-    setColorId(
-      event?.colorId ??
-        nextUnusedMemorialColor(
-          event ? usedColors.filter((id) => id !== event.colorId) : usedColors,
-        ),
-    );
     setDates(
       event ? [newDateRow(String(event.lunarDay), String(event.lunarMonth))] : [newDateRow()],
     );
     setSavePending(false);
     setError(null);
-  }, [open, event, usedColors]);
+  }, [open, event]);
 
   function handleOpenChange(next: boolean, eventDetails?: { cancel: () => void }) {
     if (!next && pendingRef.current) {
@@ -145,18 +114,12 @@ export function EventFormOverlay({
     setSavePending(true);
     setError(null);
 
-    const used: MemorialColorId[] = [...usedColors];
-    const payloads = dates.map((row, index) => {
-      const assigned = index === 0 ? colorId : nextUnusedMemorialColor(used);
-      used.push(assigned);
-      return {
-        title,
-        lunarDay: Number(row.lunarDay),
-        lunarMonth: Number(row.lunarMonth),
-        notes: notes || null,
-        colorId: assigned,
-      };
-    });
+    const payloads = dates.map((row) => ({
+      title,
+      lunarDay: Number(row.lunarDay),
+      lunarMonth: Number(row.lunarMonth),
+      notes: notes || null,
+    }));
 
     let result:
       | Awaited<ReturnType<typeof updateEventFn>>
@@ -179,6 +142,7 @@ export function EventFormOverlay({
       setError(result.error);
       return;
     }
+
     const count = dates.length;
     toast.success(
       isEdit ? "Đã cập nhật sự kiện" : count > 1 ? `Đã thêm ${count} sự kiện` : "Đã thêm sự kiện",
@@ -197,11 +161,9 @@ export function EventFormOverlay({
       pending={pending}
       title={title}
       notes={notes}
-      colorId={colorId}
       dates={dates}
       onTitle={setTitle}
       onNotes={setNotes}
-      onColor={setColorId}
       onDates={setDates}
     />
   );
@@ -271,11 +233,9 @@ function FormFields({
   pending,
   title,
   notes,
-  colorId,
   dates,
   onTitle,
   onNotes,
-  onColor,
   onDates,
 }: {
   formId: string;
@@ -283,16 +243,13 @@ function FormFields({
   pending: boolean;
   title: string;
   notes: string;
-  colorId: MemorialColorId;
   dates: DateRow[];
   onTitle: (value: string) => void;
   onNotes: (value: string) => void;
-  onColor: (value: MemorialColorId) => void;
   onDates: (value: DateRow[]) => void;
 }) {
   const titleId = `${formId}-title`;
   const notesId = `${formId}-notes`;
-  const colorLabelId = `${formId}-mau`;
   const canAdd = !isEdit && dates.length < MAX_DATES;
 
   return (
@@ -311,53 +268,6 @@ function FormFields({
           disabled={pending}
           className="h-[44px] min-h-[44px] rounded-full"
         />
-      </div>
-
-      <div>
-        <p id={colorLabelId} className="mb-1.5 text-[13px] font-medium text-[var(--ink)]">
-          {COPY.colorLabel}
-        </p>
-        <div role="radiogroup" aria-labelledby={colorLabelId} className="flex flex-wrap gap-1">
-          {MEMORIAL_COLORS.map((color) => {
-            const selected = colorId === color.id;
-            return (
-              <button
-                key={color.id}
-                type="button"
-                // Color swatches are a radiogroup of round chips, not native radios.
-                // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-                role="radio"
-                aria-checked={selected}
-                aria-label={color.label}
-                title={color.label}
-                disabled={pending}
-                onClick={() => onColor(color.id)}
-                className={cn(
-                  "relative flex size-[44px] min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-transform duration-150",
-                  "focus-visible:ring-2 focus-visible:ring-[var(--lacquer)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream-elevated)] focus-visible:outline-none",
-                  selected && "scale-105",
-                )}
-              >
-                <span
-                  className="h-7 w-7 rounded-full shadow-sm"
-                  style={{
-                    background: memorialColorCss(color.id),
-                    boxShadow: selected
-                      ? `0 0 0 2px var(--cream-elevated), 0 0 0 3.5px ${memorialColorCss(color.id)}`
-                      : undefined,
-                  }}
-                />
-                {selected && (
-                  <Check
-                    className="absolute size-3.5 text-white drop-shadow"
-                    strokeWidth={3}
-                    aria-hidden
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {dates.map((row, index) => (

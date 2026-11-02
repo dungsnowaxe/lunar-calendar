@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { occurrenceInLunarYear, solarToJdn, solarToday, type SolarDate } from "@lunar/core";
+import {
+  compareSolar,
+  occurrenceInLunarYear,
+  solarToJdn,
+  solarToday,
+  type SolarDate,
+} from "@lunar/core";
 
 import { DayDetail, TodayBloc } from "~/components/today-bloc";
 import { MonthCalendar } from "~/components/month-calendar";
 import { UpcomingEvents } from "~/components/upcoming-events";
 import { BlurFade } from "~/components/magic/blur-fade";
-import { Drawer, DrawerContent } from "~/components/ui/drawer";
-import { useColoredMemorials } from "~/hooks/use-colored-memorials";
+import { Drawer, DrawerContent, DrawerTitle } from "~/components/ui/drawer";
 import { useIsDesktop } from "~/hooks/use-min-width";
 import { COPY } from "~/lib/copy";
 import { listEventsFn } from "~/server/events";
@@ -19,8 +24,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const isDesktop = useIsDesktop();
-  const rawEvents = Route.useLoaderData();
-  const events = useColoredMemorials(rawEvents);
+  const events = Route.useLoaderData();
   const today = useMemo(() => solarToday(), []);
   const [cursor, setCursor] = useState({ year: today.year, month: today.month });
   const [selected, setSelected] = useState<SolarDate>(today);
@@ -81,9 +85,11 @@ function HomePage() {
       </div>
 
       <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
-        <DrawerContent showCloseButton>
-          <span className="sr-only">{COPY.daySelected}</span>
-          <div className="pr-14">
+        <DrawerContent showCloseButton className="max-h-[90dvh] overflow-hidden">
+          <DrawerTitle className="sr-only">
+            {compareSolar(selected, today) === 0 ? COPY.todayControl : COPY.daySelected}
+          </DrawerTitle>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-14">
             <DayDetail date={selected} memorials={selectedMemorials} bare />
           </div>
         </DrawerContent>

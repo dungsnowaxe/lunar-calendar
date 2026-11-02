@@ -27,7 +27,6 @@ export const COPY = {
     "Nhập ngày âm lịch — giỗ sẽ lặp đúng ngày đó mỗi năm. Bạn có thể thêm nhiều ngày một lúc.",
   nameLabel: "Tên sự kiện",
   namePlaceholder: "VD: Giỗ ông nội, giỗ bà ngoại…",
-  colorLabel: "Màu",
   lunarBlock: "Ngày âm lịch",
   dayLabel: "Ngày",
   monthLabel: "Tháng",

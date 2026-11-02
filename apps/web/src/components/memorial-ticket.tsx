@@ -5,8 +5,9 @@ import { NumberTicker } from "~/components/ui/number-ticker";
 import { Button } from "~/components/ui/button";
 import { COPY, lunarRule, lunarToSolarLine } from "~/lib/copy";
 import { daysBetween } from "~/lib/labels";
-import { memorialColorCss, type ColoredMemorial } from "~/lib/memorial-colors";
+import { memorialColorCss } from "~/lib/memorial-colors";
 import { cn } from "~/lib/utils";
+import type { MemorialEvent } from "~/server/events";
 
 export function MemorialTicket({
   event,
@@ -14,7 +15,7 @@ export function MemorialTicket({
   onDelete,
   className,
 }: {
-  event: ColoredMemorial;
+  event: MemorialEvent;
   onEdit?: () => void;
   onDelete?: () => void;
   className?: string;
@@ -27,7 +28,7 @@ export function MemorialTicket({
   );
   const next = upcoming[0];
   const following = upcoming.slice(1, 3).map(formatSolar);
-  const accent = memorialColorCss(event.colorId);
+  const accent = memorialColorCss(event.id);
   const daysLeft = next ? daysBetween(today, next) : 0;
 
   return (
@@ -82,6 +83,9 @@ export function MemorialTicket({
             {following.join(" · ")}
           </p>
         )}
+        {event.notes ? (
+          <p className="mt-2.5 text-[13px] leading-snug text-[var(--ink-muted)]">{event.notes}</p>
+        ) : null}
       </div>
 
       <div className="ticket-notch relative">
@@ -113,14 +117,14 @@ export function MemorialTicket({
   );
 }
 
-export function MemorialRow({ event, onClick }: { event: ColoredMemorial; onClick?: () => void }) {
+export function MemorialRow({ event, onClick }: { event: MemorialEvent; onClick?: () => void }) {
   const today = solarToday();
   const next = nextOccurrences(
     { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth },
     today,
     1,
   )[0];
-  const accent = memorialColorCss(event.colorId);
+  const accent = memorialColorCss(event.id);
   const daysLeft = next ? daysBetween(today, next) : 0;
 
   return (

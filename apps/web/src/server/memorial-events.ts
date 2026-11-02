@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-import {
-  isMemorialColorId,
-  memorialColorIdSchema,
-  type MemorialColorId,
-} from "../lib/memorial-colors.ts";
-
 /**
  * Memorial events (ngày giỗ) - one shared list for the whole family. The
  * lunar date below is the canonical, stored representation; occurrences
@@ -19,7 +13,6 @@ export interface MemorialEvent {
   lunarMonth: number;
   notes: string | null;
   createdAt: string;
-  colorId: MemorialColorId | null;
 }
 
 export const eventInputSchema = z.object({
@@ -44,7 +37,6 @@ export const eventInputSchema = z.object({
     .max(500, "Ghi chú tối đa 500 ký tự")
     .nullish()
     .transform((v) => v || null),
-  colorId: memorialColorIdSchema.optional(),
 });
 
 const eventsInputSchema = z
@@ -63,11 +55,8 @@ export interface EventRow {
   lunar_month: number;
   notes: string | null;
   created_at: string;
-  color_id?: string | null;
 }
 
-export const EVENT_SELECT_WITH_COLOR =
-  "id, title, lunar_day, lunar_month, notes, created_at, color_id";
 export const EVENT_SELECT_BASE = "id, title, lunar_day, lunar_month, notes, created_at";
 
 export function mapRow(row: EventRow): MemorialEvent {
@@ -78,7 +67,6 @@ export function mapRow(row: EventRow): MemorialEvent {
     lunarMonth: row.lunar_month,
     notes: row.notes,
     createdAt: row.created_at,
-    colorId: isMemorialColorId(row.color_id) ? row.color_id : null,
   };
 }
 
@@ -87,7 +75,6 @@ export type MemorialEventInsert = {
   lunar_day: number;
   lunar_month: number;
   notes: string | null;
-  color_id?: MemorialColorId | null;
 };
 
 export type MemorialEventsWriter = {
@@ -114,21 +101,10 @@ export async function createMemorialEvents(
     lunar_day: item.lunarDay,
     lunar_month: item.lunarMonth,
     notes: item.notes,
-    color_id: item.colorId ?? null,
   }));
-  const withColor = await supabase
-    .from("memorial_events")
-    .insert(values)
-    .select(EVENT_SELECT_WITH_COLOR);
-  if (!withColor.error) {
-    return { events: (withColor.data as EventRow[]).map(mapRow) };
+  const inserted = await supabase.from("memorial_events").insert(values).select(EVENT_SELECT_BASE);
+  if (inserted.error) {
+    return { error: `Không thể tạo sự kiện: ${inserted.error.message}` };
   }
-  const withoutColor = await supabase
-    .from("memorial_events")
-    .insert(values.map(({ color_id: _colorId, ...rest }) => rest))
-    .select(EVENT_SELECT_BASE);
-  if (withoutColor.error) {
-    return { error: `Không thể tạo sự kiện: ${withoutColor.error.message}` };
-  }
-  return { events: (withoutColor.data as EventRow[]).map(mapRow) };
+  return { events: (inserted.data as EventRow[]).map(mapRow) };
 }

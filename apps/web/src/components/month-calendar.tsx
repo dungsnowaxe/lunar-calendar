@@ -15,11 +15,12 @@ import { Button } from "~/components/ui/button";
 import { monthGrid, shiftMonth } from "~/lib/calendar-grid";
 import { COPY, monthHeading } from "~/lib/copy";
 import { CALENDAR_HEADERS, lunarLongLabel, lunarShortLabel, weekdayLong } from "~/lib/labels";
-import { memorialColorCss, type ColoredMemorial } from "~/lib/memorial-colors";
+import { memorialColorCss } from "~/lib/memorial-colors";
 import { cn } from "~/lib/utils";
+import type { MemorialEvent } from "~/server/events";
 
 interface MonthCalendarProps {
-  events: ColoredMemorial[];
+  events: MemorialEvent[];
   cursor: { year: number; month: number };
   selected: SolarDate;
   onCursorChange: (cursor: { year: number; month: number }) => void;
@@ -44,7 +45,7 @@ export function MonthCalendar({
   }, [cells]);
 
   const eventsByJdn = useMemo(() => {
-    const map = new Map<number, ColoredMemorial[]>();
+    const map = new Map<number, MemorialEvent[]>();
     for (const event of events) {
       const rule = { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth };
       for (let lunarYear = cursor.year - 1; lunarYear <= cursor.year + 1; lunarYear++) {
@@ -149,7 +150,7 @@ function CalendarCellButton({
   lunar: ReturnType<typeof solarToLunar>;
   isToday: boolean;
   isSelected: boolean;
-  dayEvents: ColoredMemorial[];
+  dayEvents: MemorialEvent[];
   onSelect: () => void;
 }) {
   const dayOfWeek = solarDayOfWeek(cell.date);
@@ -164,7 +165,7 @@ function CalendarCellButton({
       aria-current={isToday ? "date" : undefined}
       aria-label={`${weekdayLong(dayOfWeek)}, ${formatSolar(cell.date)}, âm lịch ${lunarLongLabel(lunar)}${dayEvents.length ? `, ${dayEvents.map((event) => event.title).join(", ")}` : ""}`}
       className={cn(
-        "relative flex min-h-[52px] flex-col items-center justify-start rounded-[14px] p-1 transition-colors duration-150 sm:min-h-[72px] sm:rounded-[16px] lg:min-h-[88px] sm:p-1.5",
+        "relative flex min-h-[52px] flex-col items-center justify-start overflow-hidden rounded-[14px] p-1 transition-colors duration-150 sm:min-h-[72px] sm:rounded-[16px] lg:min-h-[88px] sm:p-1.5",
         "hover:bg-[var(--paper)] focus-visible:ring-2 focus-visible:ring-[var(--lacquer)]",
         !cell.inMonth && "opacity-40",
         isSelected &&
@@ -185,12 +186,12 @@ function CalendarCellButton({
         {lunar.day === 1 ? lunarShortLabel(lunar) : lunar.day}
       </span>
       {dayEvents.length > 0 && (
-        <span className="mt-1 flex min-h-[8px] items-center justify-center gap-0.5">
-          {dayEvents.map((event) => (
+        <span className="mt-1 flex w-full min-w-0 flex-wrap items-center justify-center gap-0.5 overflow-hidden">
+          {dayEvents.slice(0, 4).map((event) => (
             <span
               key={event.id}
               className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: memorialColorCss(event.colorId) }}
+              style={{ background: memorialColorCss(event.id) }}
               title={event.title}
             />
           ))}
