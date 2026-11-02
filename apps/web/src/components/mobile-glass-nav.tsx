@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, Heart, Plus, Scissors, type LucideIcon } from "lucide-react";
 
 import { GlassNavBubble } from "~/components/glass-nav-bubble";
-import { useFabScrollVisibility } from "~/hooks/use-fab-scroll-visibility";
+import { FAB_OBSTRUCT_SELECTOR, useFabScrollVisibility } from "~/hooks/use-fab-scroll-visibility";
 import { COPY } from "~/lib/copy";
 import { cn } from "~/lib/utils";
 
@@ -37,6 +37,7 @@ export function MobileGlassNav() {
   return (
     <nav
       aria-label="Điều hướng di động"
+      data-fab-obstruct-selector={FAB_OBSTRUCT_SELECTOR}
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(12px,env(safe-area-inset-bottom))] md:hidden"
     >
       <div className="relative w-full max-w-sm">

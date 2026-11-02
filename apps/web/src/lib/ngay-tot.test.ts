@@ -148,6 +148,11 @@ test("TodayBloc keeps hôm nay, Can–Chi, and the cắt tóc line", () => {
   assert.ok(source.includes('to="/ngay-tot-cat-toc"'));
   assert.ok(source.includes("Cắt tóc:"), "the verdict does not name its việc");
   assert.ok(!source.includes("{quality.score}"), "TodayBloc shows a bare score");
+  assert.equal(
+    source.split("data-fab-obstruct").length - 1,
+    4,
+    "TodayBloc and DayDetail tag the moon and the date grid as FAB obstructions",
+  );
 });
 
 test("user-facing copy uses only GLOSSARY.md vocabulary", () => {

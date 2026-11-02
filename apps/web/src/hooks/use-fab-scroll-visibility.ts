@@ -1,7 +1,26 @@
 import { useEffect, useState } from "react";
 
+declare global {
+  interface Window {
+    __fabOverlapReport?: typeof fabOverlapReport;
+  }
+}
+
 const FAB_SIZE = 56;
 const NAV_SELECTOR = 'nav[aria-label="Điều hướng di động"]';
+
+/** Shared by the visibility hook and the overlap gate (also stamped on the nav). */
+export const FAB_OBSTRUCT_SELECTOR = [
+  "[data-countdown-value]",
+  "[data-countdown-block]",
+  "[data-memorial-title]",
+  "[data-fab-obstruct]",
+  "main button",
+  "main a",
+  'main [role="button"]',
+  "article button",
+  "article a",
+].join(",");
 
 function isFabHidden(fab: HTMLElement): boolean {
   return (
@@ -45,26 +64,21 @@ function intersects(a: DOMRect, b: DOMRect, pad = 2): boolean {
   );
 }
 
-/** Interactive / content the FAB must never cover when visible. */
-function obstructingSelector(): string {
-  return [
-    "[data-countdown-value]",
-    "[data-countdown-block]",
-    "[data-memorial-title]",
-    "[data-fab-obstruct]",
-    "button",
-    "a[href]",
-    '[role="button"]',
-  ].join(",");
-}
+export type FabOverlapReport = {
+  visible: boolean;
+  clear: boolean;
+  hits: number;
+  reasons: string[];
+  selector: string;
+};
 
-export function fabLaneIsClear(): boolean {
+export function fabOverlapReport(): FabOverlapReport {
   const fabEl = document.querySelector(".glass-fab");
+  const visible = fabEl instanceof HTMLElement && !isFabHidden(fabEl);
   const fab =
-    fabEl instanceof HTMLElement && !isFabHidden(fabEl)
-      ? fabEl.getBoundingClientRect()
-      : fabMeasureRect();
-  const nodes = document.querySelectorAll(obstructingSelector());
+    visible && fabEl instanceof HTMLElement ? fabEl.getBoundingClientRect() : fabMeasureRect();
+  const reasons: string[] = [];
+  const nodes = document.querySelectorAll(FAB_OBSTRUCT_SELECTOR);
   for (const el of nodes) {
     if (!(el instanceof HTMLElement)) continue;
     if (el.closest(NAV_SELECTOR)) continue;
@@ -73,19 +87,37 @@ export function fabLaneIsClear(): boolean {
     const box = el.getBoundingClientRect();
     if (box.width < 1 || box.height < 1) continue;
     if (box.bottom < 0 || box.top > window.innerHeight) continue;
-    if (intersects(fab, box)) return false;
+    if (intersects(fab, box)) {
+      reasons.push(
+        (
+          el.getAttribute("aria-label") || el.tagName + " " + (el.textContent || "").slice(0, 32)
+        ).trim(),
+      );
+    }
   }
-  return true;
+  return {
+    visible,
+    clear: reasons.length === 0,
+    hits: reasons.length,
+    reasons,
+    selector: FAB_OBSTRUCT_SELECTOR,
+  };
+}
+
+export function fabLaneIsClear(): boolean {
+  return fabOverlapReport().clear;
 }
 
 /**
  * Hide the FAB while the page is scrolling. On idle, reappear only when the
- * measured FAB rect is clear of countdowns, titles, and buttons.
+ * measured FAB rect is clear of countdowns, titles, buttons, and tagged heroes.
  */
 export function useFabScrollVisibility(): boolean {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
+    window.__fabOverlapReport = fabOverlapReport;
+
     let lastY = window.scrollY;
     let ticking = false;
     let stopTimer = 0;
@@ -123,6 +155,7 @@ export function useFabScrollVisibility(): boolean {
     window.addEventListener("resize", evaluateIdle, { passive: true });
     const boot = window.setTimeout(evaluateIdle, 0);
     return () => {
+      if (window.__fabOverlapReport === fabOverlapReport) delete window.__fabOverlapReport;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", evaluateIdle);
       window.clearTimeout(stopTimer);
