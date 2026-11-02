@@ -66,7 +66,7 @@ function EventsPage() {
               {COPY.eventsSubtitle}
             </p>
           </div>
-          <Button className="min-h-11 rounded-full" onClick={openCreate}>
+          <Button className="min-h-[44px] rounded-full" onClick={openCreate}>
             <Plus className="size-4" /> {COPY.addEventLabel}
           </Button>
         </div>
@@ -147,10 +147,10 @@ function DeleteConfirm({
           <AlertDialogDescription>{event ? deleteBody(event.title) : ""}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="min-h-11 rounded-full">
+          <AlertDialogCancel className="min-h-[44px] rounded-full">
             {COPY.deleteCancel}
           </AlertDialogCancel>
-          <AlertDialogAction className="min-h-11 rounded-full" onClick={handleDelete}>
+          <AlertDialogAction className="min-h-[44px] rounded-full" onClick={handleDelete}>
             {COPY.deleteConfirm}
           </AlertDialogAction>
         </AlertDialogFooter>

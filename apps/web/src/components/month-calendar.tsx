@@ -78,7 +78,7 @@ export function MonthCalendar({
           <Button
             variant="ghost"
             size="icon-lg"
-            className="size-11"
+            className="size-[44px] min-h-[44px] min-w-[44px]"
             aria-label="Tháng trước"
             onClick={() => changeMonth(-1)}
           >
@@ -86,7 +86,7 @@ export function MonthCalendar({
           </Button>
           <Button
             variant="secondary"
-            className="h-11 min-h-11 rounded-full px-4"
+            className="h-[44px] min-h-[44px] rounded-full px-4"
             onClick={() => {
               onCursorChange({ year: today.year, month: today.month });
               onSelect(today);
@@ -97,7 +97,7 @@ export function MonthCalendar({
           <Button
             variant="ghost"
             size="icon-lg"
-            className="size-11"
+            className="size-[44px] min-h-[44px] min-w-[44px]"
             aria-label="Tháng sau"
             onClick={() => changeMonth(1)}
           >

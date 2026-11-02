@@ -83,7 +83,7 @@ function HomePage() {
       <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
         <DrawerContent showCloseButton>
           <span className="sr-only">{COPY.daySelected}</span>
-          <div className="pr-10">
+          <div className="pr-14">
             <DayDetail date={selected} memorials={selectedMemorials} bare />
           </div>
         </DrawerContent>

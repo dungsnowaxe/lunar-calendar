@@ -85,7 +85,7 @@ export function ThemeSwitch() {
             pickerRef.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
           });
         }}
-        className="theme-toggle flex size-8 shrink-0 items-center justify-center rounded-full"
+        className="theme-toggle flex size-[44px] min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full"
       >
         <HugeiconsIcon icon={current.icon} className="size-4" />
       </button>
@@ -105,7 +105,7 @@ export function ThemeSwitch() {
               requestAnimationFrame(() => toggleRef.current?.focus());
             }}
             className={cn(
-              "flex size-10 items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
+              "flex size-[44px] min-h-[44px] min-w-[44px] items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
               theme === value && "bg-background text-foreground shadow-sm",
             )}
           >

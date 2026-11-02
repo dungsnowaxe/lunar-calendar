@@ -54,7 +54,7 @@ export function MemorialTicket({
                 <Button
                   variant="ghost"
                   size="icon-lg"
-                  className="size-11"
+                  className="size-[44px] min-h-[44px] min-w-[44px]"
                   onClick={onEdit}
                   aria-label={`${COPY.edit} ${event.title}`}
                 >
@@ -65,7 +65,7 @@ export function MemorialTicket({
                 <Button
                   variant="ghost"
                   size="icon-lg"
-                  className="size-11"
+                  className="size-[44px] min-h-[44px] min-w-[44px]"
                   onClick={onDelete}
                   aria-label={`${COPY.delete} ${event.title}`}
                 >

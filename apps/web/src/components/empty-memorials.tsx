@@ -28,7 +28,7 @@ export function EmptyMemorials({
       <h2 className="font-heading text-xl font-semibold">{COPY.emptyTitle}</h2>
       <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-muted)]">{COPY.emptyBody}</p>
       {onAdd && (
-        <Button className="mt-5 min-h-11 rounded-full" onClick={onAdd}>
+        <Button className="mt-5 min-h-[44px] rounded-full" onClick={onAdd}>
           {COPY.emptyCta}
         </Button>
       )}

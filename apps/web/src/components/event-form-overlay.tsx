@@ -210,7 +210,7 @@ export function EventFormOverlay({
       <Button
         type="button"
         variant="outline"
-        className="min-h-11 rounded-full"
+        className="min-h-[44px] rounded-full"
         onClick={() => handleOpenChange(false)}
         disabled={pending}
       >
@@ -219,7 +219,7 @@ export function EventFormOverlay({
       <Button
         type="submit"
         form={formId}
-        className="min-h-11 rounded-full"
+        className="min-h-[44px] rounded-full"
         disabled={pending || !title.trim()}
       >
         {saveLabel}
@@ -234,7 +234,7 @@ export function EventFormOverlay({
           className="max-h-[85vh] max-w-lg overflow-y-auto rounded-[28px] bg-[var(--cream-elevated)] sm:max-w-lg"
           showCloseButton={!pending}
         >
-          <DialogHeader>
+          <DialogHeader className="pr-14">
             <DialogTitle className="font-heading text-xl">{heading}</DialogTitle>
             <DialogDescription>{COPY.formHelp}</DialogDescription>
           </DialogHeader>
@@ -251,7 +251,7 @@ export function EventFormOverlay({
   return (
     <Drawer open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
       <DrawerContent className="flex max-h-[90dvh] flex-col gap-0" showCloseButton={!pending}>
-        <DrawerHeader className="shrink-0 pr-12">
+        <DrawerHeader className="shrink-0 pr-14">
           <DrawerTitle>{heading}</DrawerTitle>
           <DrawerDescription>{COPY.formHelp}</DrawerDescription>
         </DrawerHeader>
@@ -309,7 +309,7 @@ function FormFields({
           required
           maxLength={120}
           disabled={pending}
-          className="h-11 rounded-full"
+          className="h-[44px] min-h-[44px] rounded-full"
         />
       </div>
 
@@ -333,7 +333,7 @@ function FormFields({
                 disabled={pending}
                 onClick={() => onColor(color.id)}
                 className={cn(
-                  "relative flex size-11 items-center justify-center rounded-full transition-transform duration-150",
+                  "relative flex size-[44px] min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-transform duration-150",
                   "focus-visible:ring-2 focus-visible:ring-[var(--lacquer)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream-elevated)] focus-visible:outline-none",
                   selected && "scale-105",
                 )}
@@ -375,7 +375,7 @@ function FormFields({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-11"
+                className="size-[44px] min-h-[44px] min-w-[44px]"
                 aria-label="Xóa ngày"
                 disabled={pending}
                 onClick={() => onDates(dates.filter((item) => item.key !== row.key))}
@@ -400,7 +400,10 @@ function FormFields({
                 }}
                 disabled={pending}
               >
-                <SelectTrigger id={`${formId}-day-${row.key}`} className="h-11 w-full rounded-full">
+                <SelectTrigger
+                  id={`${formId}-day-${row.key}`}
+                  className="h-[44px] min-h-[44px] w-full rounded-full"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -429,7 +432,7 @@ function FormFields({
               >
                 <SelectTrigger
                   id={`${formId}-month-${row.key}`}
-                  className="h-11 w-full rounded-full"
+                  className="h-[44px] min-h-[44px] w-full rounded-full"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -451,7 +454,7 @@ function FormFields({
         <Button
           type="button"
           variant="outline"
-          className="min-h-11 w-full rounded-full"
+          className="min-h-[44px] w-full rounded-full"
           disabled={pending}
           onClick={() => onDates([...dates, newDateRow()])}
         >

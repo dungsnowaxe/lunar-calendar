@@ -535,15 +535,16 @@
 @media (max-width: 767px) {
   .theme-picker {
     min-width: 0;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
     overflow: hidden;
     transition:
       width 220ms ease,
       height 220ms ease;
   }
   .theme-picker.is-expanded {
-    width: 128px;
+    width: 136px;
     height: 44px;
   }
   .theme-toggle {
