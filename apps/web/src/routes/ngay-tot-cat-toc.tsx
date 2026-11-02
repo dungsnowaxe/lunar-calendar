@@ -35,7 +35,7 @@ function NgayTotCatTocPage() {
   const today = solarToday();
 
   return (
-    <main className="mx-auto w-full haircut-page max-w-7xl flex-1 px-4 py-8 md:px-6 md:py-12">
+    <main className="page-pad-mobile-nav mx-auto w-full haircut-page max-w-7xl flex-1 px-4 pt-8 md:px-6 md:pt-12">
       <div className="mb-8 md:mb-12">
         <h1 className="font-heading text-[clamp(1.8rem,4.5vw,3.5rem)] leading-tight tracking-tight">
           Ngày tốt cắt tóc

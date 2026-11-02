@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MonitorIcon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+
+import { GlassNavBubble } from "~/components/glass-nav-bubble";
 import { cn } from "~/lib/utils";
 
 type Theme = "light" | "dark" | "system";
@@ -64,16 +66,21 @@ export function ThemeSwitch() {
   }, [expanded]);
 
   const current = OPTIONS.find((option) => option.value === theme)!;
+  const activeIndex = Math.max(
+    0,
+    OPTIONS.findIndex((option) => option.value === theme),
+  );
 
   return (
     <fieldset
       ref={pickerRef}
       aria-label="Chế độ giao diện"
       className={cn(
-        "theme-picker flex items-center rounded-4xl bg-muted p-0.5",
+        "theme-picker glass-pill relative flex items-center rounded-full p-[4px]",
         expanded && "is-expanded",
       )}
     >
+      <GlassNavBubble activeIndex={activeIndex} insetPx={4} gapPx={0} />
       <button
         ref={toggleRef}
         type="button"
@@ -85,33 +92,36 @@ export function ThemeSwitch() {
             pickerRef.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
           });
         }}
-        className="theme-toggle flex size-[44px] min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full"
+        className="theme-toggle glass-nav-item relative z-10 flex size-[44px] min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full"
       >
         <HugeiconsIcon icon={current.icon} className="size-4" />
       </button>
-      <div className="theme-options flex items-center gap-0.5">
-        {OPTIONS.map(({ value, label, icon: Icon }) => (
-          <button
-            key={value}
-            type="button"
-            aria-label={label}
-            title={label}
-            aria-pressed={theme === value}
-            onClick={() => {
-              setTheme(value);
-              localStorage.setItem("theme", value);
-              applyTheme(value);
-              setExpanded(false);
-              requestAnimationFrame(() => toggleRef.current?.focus());
-            }}
-            className={cn(
-              "flex size-[44px] min-h-[44px] min-w-[44px] items-center justify-center rounded-4xl text-muted-foreground transition-colors hover:text-foreground",
-              theme === value && "bg-background text-foreground shadow-sm",
-            )}
-          >
-            <HugeiconsIcon icon={Icon} className="size-4" strokeWidth={2} />
-          </button>
-        ))}
+      <div className="theme-options relative z-10 flex items-center gap-0">
+        {OPTIONS.map(({ value, label, icon: Icon }) => {
+          const isActive = theme === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-label={label}
+              title={label}
+              aria-pressed={isActive}
+              onClick={() => {
+                setTheme(value);
+                localStorage.setItem("theme", value);
+                applyTheme(value);
+                setExpanded(false);
+                requestAnimationFrame(() => toggleRef.current?.focus());
+              }}
+              className={cn(
+                "glass-nav-item relative z-10 flex size-[44px] min-h-[44px] min-w-[44px] items-center justify-center rounded-full",
+                isActive && "is-active",
+              )}
+            >
+              <HugeiconsIcon icon={Icon} className="size-4" strokeWidth={isActive ? 2.25 : 2} />
+            </button>
+          );
+        })}
       </div>
     </fieldset>
   );

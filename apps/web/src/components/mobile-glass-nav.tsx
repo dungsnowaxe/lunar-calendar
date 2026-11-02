@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { CalendarDays, Heart, Scissors, type LucideIcon } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { CalendarDays, Heart, Plus, Scissors, type LucideIcon } from "lucide-react";
 
+import { GlassNavBubble } from "~/components/glass-nav-bubble";
 import { COPY } from "~/lib/copy";
 import { cn } from "~/lib/utils";
 
@@ -15,35 +16,64 @@ const ITEMS: {
   { to: "/ngay-tot-cat-toc", label: COPY.navNgayTot, icon: Scissors, exact: false },
 ];
 
+function navIndex(pathname: string): number {
+  const index = ITEMS.findIndex((item) =>
+    item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`),
+  );
+  return index < 0 ? 0 : index;
+}
+
+function showsAddFab(pathname: string): boolean {
+  return pathname === "/" || pathname === "/su-kien" || pathname.startsWith("/su-kien/");
+}
+
 export function MobileGlassNav() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const activeIndex = navIndex(pathname);
+
   return (
     <nav
       aria-label="Điều hướng di động"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(12px,env(safe-area-inset-bottom))] md:hidden"
     >
-      <div className="glass-pill glass-pill-nav-mobile pointer-events-auto flex w-full max-w-sm items-center gap-1 rounded-full p-1.5">
-        {ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.exact }}
-              activeProps={{
-                className: "text-[var(--lacquer)] font-semibold",
-                "aria-current": "page",
-              }}
-              className={cn(
-                "relative flex min-h-[44px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full pt-1 pb-2.5",
-                "text-[11px] font-medium text-[var(--ink-muted)] transition-colors duration-200",
-                "hover:text-[var(--ink)] focus-visible:ring-2 focus-visible:ring-[var(--lacquer)] focus-visible:outline-none",
-              )}
-            >
-              <Icon className="size-5" strokeWidth={2} aria-hidden />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+      <div className="relative w-full max-w-sm">
+        {showsAddFab(pathname) ? (
+          <Link
+            to="/su-kien"
+            search={{ add: "1" }}
+            aria-label={COPY.addMemorial}
+            className="glass-fab pointer-events-auto absolute right-0 bottom-[calc(100%+12px)] flex size-[56px] min-h-[56px] min-w-[56px] items-center justify-center rounded-full md:hidden"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.25} aria-hidden />
+          </Link>
+        ) : null}
+        <div className="glass-pill glass-pill-nav-mobile pointer-events-auto relative grid w-full grid-cols-3 gap-0.5 rounded-full p-1.5">
+          <GlassNavBubble activeIndex={activeIndex} insetPx={6} />
+          {ITEMS.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = index === activeIndex;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                activeOptions={{ exact: item.exact }}
+                activeProps={{ "aria-current": "page" }}
+                className={cn(
+                  "glass-nav-item relative z-10 inline-flex h-12 min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold",
+                  "focus-visible:ring-2 focus-visible:ring-[var(--lacquer)] focus-visible:outline-none",
+                  isActive && "is-active",
+                )}
+              >
+                <Icon
+                  className={cn("h-5 w-5", isActive && "stroke-[2.25px]")}
+                  strokeWidth={isActive ? 2.25 : 2}
+                  aria-hidden
+                />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

@@ -35,7 +35,7 @@ export function UpcomingEvents({ events, count = 5, layout }: UpcomingEventsProp
             title={COPY.addMemorial}
             className={cn(
               buttonVariants({ size: "icon-lg" }),
-              "size-[44px] min-h-[44px] min-w-[44px] shrink-0 rounded-full",
+              "hidden size-[44px] min-h-[44px] min-w-[44px] shrink-0 rounded-full md:inline-flex",
             )}
           >
             <Plus className="size-4" />
@@ -73,7 +73,7 @@ export function UpcomingEvents({ events, count = 5, layout }: UpcomingEventsProp
       <Link
         to="/su-kien"
         search={{ add: "1" }}
-        className={cn(buttonVariants(), "mt-4 flex min-h-[44px] w-full rounded-full")}
+        className={cn(buttonVariants(), "mt-4 hidden min-h-[44px] w-full rounded-full md:flex")}
       >
         {COPY.addMemorialButton}
       </Link>

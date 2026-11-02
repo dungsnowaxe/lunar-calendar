@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -42,6 +42,14 @@ function EventsPage() {
   const [editing, setEditing] = useState<MemorialEvent | undefined>(undefined);
   const [deleting, setDeleting] = useState<MemorialEvent | undefined>(undefined);
 
+  useEffect(() => {
+    if (add !== "1") return;
+    // Open from `/su-kien?add=1` (home FAB and in-card +).
+    // oxlint-disable-next-line react/set-state-in-effect
+    setEditing(undefined);
+    setFormOpen(true);
+  }, [add]);
+
   function refresh() {
     return router.invalidate();
   }
@@ -52,7 +60,7 @@ function EventsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-6 md:py-8">
+    <main className="page-pad-mobile-nav mx-auto w-full max-w-5xl flex-1 px-4 pt-6 md:px-6 md:pt-8">
       <BlurFade>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -63,7 +71,7 @@ function EventsPage() {
               {COPY.eventsSubtitle}
             </p>
           </div>
-          <Button className="min-h-[44px] rounded-full" onClick={openCreate}>
+          <Button className="hidden min-h-[44px] rounded-full md:inline-flex" onClick={openCreate}>
             <Plus className="size-4" /> {COPY.addEventLabel}
           </Button>
         </div>
