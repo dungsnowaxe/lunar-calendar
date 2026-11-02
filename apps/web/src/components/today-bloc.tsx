@@ -89,8 +89,8 @@ export function TodayBloc({
         </svg>
       </div>
 
-      <div className={cn("px-5 pb-5", compact ? "pt-2" : "pt-3")}>
-        <div className="flex items-start justify-between gap-3">
+      <div className={cn(bare ? "px-[20px] pb-5" : "px-5 pb-5", compact ? "pt-2" : "pt-3")}>
+        <div className={cn("flex items-start justify-between gap-3", bare && "pr-[44px]")}>
           <div>
             <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--ink-muted)] uppercase">
               {isToday ? COPY.todayControl : COPY.daySelected}
@@ -209,7 +209,7 @@ export function DayDetail({
 
   const body = (
     <>
-      <div className="flex items-start justify-between">
+      <div className={cn("flex items-start justify-between", bare && "pr-[44px]")}>
         <div>
           <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--ink-muted)] uppercase">
             {COPY.daySelected}
@@ -245,7 +245,7 @@ export function DayDetail({
     </>
   );
 
-  if (bare) return <div className="px-5 pb-6">{body}</div>;
+  if (bare) return <div className="px-[20px] pb-6">{body}</div>;
 
   return <div className="paper-card p-5">{body}</div>;
 }

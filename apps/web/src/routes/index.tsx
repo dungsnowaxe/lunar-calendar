@@ -89,7 +89,7 @@ function HomePage() {
           <DrawerTitle className="sr-only">
             {compareSolar(selected, today) === 0 ? COPY.todayControl : COPY.daySelected}
           </DrawerTitle>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-14">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <DayDetail date={selected} memorials={selectedMemorials} bare />
           </div>
         </DrawerContent>
