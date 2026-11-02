@@ -70,7 +70,7 @@ export function ThemeSwitch() {
       ref={pickerRef}
       aria-label="Chế độ giao diện"
       className={cn(
-        "theme-picker flex items-center rounded-4xl bg-muted p-0.5",
+        "theme-picker glass-pill flex items-center rounded-4xl p-0.5",
         expanded && "is-expanded",
       )}
     >
