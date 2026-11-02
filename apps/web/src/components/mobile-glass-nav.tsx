@@ -1,13 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { CalendarDays, Heart, Plus, Scissors, type LucideIcon } from "lucide-react";
 
-import {
-  GlassMaskIcon,
-  ICON_CALENDAR_DAYS,
-  ICON_HEART,
-  ICON_PLUS,
-  ICON_SCISSORS,
-  type GlassIconNode,
-} from "~/components/glass-mask-icon";
 import { GlassNavBubble } from "~/components/glass-nav-bubble";
 import { FAB_OBSTRUCT_SELECTOR, useFabScrollVisibility } from "~/hooks/use-fab-scroll-visibility";
 import { COPY } from "~/lib/copy";
@@ -16,12 +9,12 @@ import { cn } from "~/lib/utils";
 const ITEMS: {
   to: "/" | "/su-kien" | "/ngay-tot-cat-toc";
   label: string;
-  icon: readonly GlassIconNode[];
+  icon: LucideIcon;
   exact: boolean;
 }[] = [
-  { to: "/", label: COPY.navLich, icon: ICON_CALENDAR_DAYS, exact: true },
-  { to: "/su-kien", label: COPY.navSuKien, icon: ICON_HEART, exact: false },
-  { to: "/ngay-tot-cat-toc", label: COPY.navNgayTot, icon: ICON_SCISSORS, exact: false },
+  { to: "/", label: COPY.navLich, icon: CalendarDays, exact: true },
+  { to: "/su-kien", label: COPY.navSuKien, icon: Heart, exact: false },
+  { to: "/ngay-tot-cat-toc", label: COPY.navNgayTot, icon: Scissors, exact: false },
 ];
 
 function navIndex(pathname: string): number {
@@ -63,7 +56,7 @@ export function MobileGlassNav() {
               )}
             >
               <span aria-hidden className="glass-refract-rim" />
-              <GlassMaskIcon nodes={ICON_PLUS} className="h-6 w-6" strokeWidth={2.6} />
+              <Plus className="h-6 w-6" strokeWidth={2.6} aria-hidden />
             </Link>
           </div>
         ) : null}
@@ -71,6 +64,7 @@ export function MobileGlassNav() {
           <span aria-hidden className="glass-refract-rim" />
           <GlassNavBubble activeIndex={activeIndex} insetPx={6} />
           {ITEMS.map((item, index) => {
+            const Icon = item.icon;
             const isActive = index === activeIndex;
             return (
               <Link
@@ -84,10 +78,10 @@ export function MobileGlassNav() {
                   isActive && "is-active",
                 )}
               >
-                <GlassMaskIcon
-                  nodes={item.icon}
-                  className="h-5 w-5"
+                <Icon
+                  className={cn("h-5 w-5", isActive && "stroke-[2.25px]")}
                   strokeWidth={isActive ? 2.25 : 2}
+                  aria-hidden
                 />
                 <span>{item.label}</span>
               </Link>

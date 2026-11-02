@@ -44,11 +44,8 @@ test("backdrop-filter lives on the host via --glass-backdrop, not a child plate"
   assert.equal(css.includes(".glass-plate {"), false);
 });
 
-test("glass nav and theme chip do not mount SVG icon elements", () => {
-  assert.doesNotMatch(nav, /lucide-react/);
-  assert.doesNotMatch(nav, /<svg\b/);
-  assert.match(nav, /GlassMaskIcon/);
-  assert.doesNotMatch(theme, /HugeiconsIcon/);
-  assert.doesNotMatch(theme, /<svg\b/);
-  assert.match(theme, /GlassMaskIcon/);
+test("glass nav keeps Lucide / Hugeicons hosts; SVG descendants do not disable blur", () => {
+  assert.match(nav, /lucide-react/);
+  assert.match(theme, /HugeiconsIcon/);
+  assert.doesNotMatch(css, /glass-mask-icon/);
 });

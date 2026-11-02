@@ -417,12 +417,10 @@
    is also present, and Chromium then computes `none`. `isolation: isolate`
    is a backdrop root and would sample an empty backdrop.
 
-   Chromium skips in-flow page content in the backdrop snapshot when the
-   filtered element has SVG descendants (Lucide / Hugeicons, even without
-   a CSS filter). Tint still composites, so glyphs look dimmed but stay
-   sharp. A child/::before plate also fails: the host is a stacking
-   context, so the plate blurs an empty backdrop. Keep the filter on the
-   host and draw icons with CSS masks (no <svg> in the tree). */
+   Headless Chromium does not rasterize backdrop-filter unless GPU
+   rasterization is on (SwiftShader is enough). Visual gates must launch
+   with --enable-gpu --use-gl=angle --use-angle=swiftshader
+   --enable-gpu-rasterization or screenshots show the tint only. */
 .glass-pill {
   position: relative;
   background-color: var(--glass-tint);
@@ -517,30 +515,20 @@
 .dark .glass-nav-item.is-active {
   color: var(--glass-active-fg);
 }
-.glass-mask-icon {
-  display: block;
-  flex-shrink: 0;
-  background-color: currentColor;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
-}
-.glass-nav-item .glass-mask-icon {
+.glass-nav-item svg {
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 95%, transparent))
     drop-shadow(0 0 4px color-mix(in oklch, var(--glass-halo) 85%, transparent))
     drop-shadow(0 0 10px color-mix(in oklch, var(--glass-halo) 65%, transparent))
     drop-shadow(0 1px 0 oklch(1 0 0 / 0.5));
 }
-.dark .glass-nav-item .glass-mask-icon {
+.dark .glass-nav-item svg {
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 90%, transparent))
     drop-shadow(0 0 5px color-mix(in oklch, var(--glass-halo) 80%, transparent))
     drop-shadow(0 0 12px color-mix(in oklch, var(--glass-halo) 65%, transparent))
     drop-shadow(0 0 1px oklch(0.95 0.01 85 / 0.65));
 }
-.glass-nav-item > .glass-mask-icon,
+.glass-nav-item > svg,
+.glass-nav-item svg,
 .glass-nav-item > span {
   position: relative;
   z-index: 1;
@@ -572,18 +560,20 @@
     opacity 180ms ease,
     translate 180ms ease;
 }
-.glass-fab .glass-mask-icon {
+.glass-fab svg {
   position: relative;
   z-index: 3;
   color: var(--color-ink);
+  stroke: var(--color-ink);
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 98%, transparent))
     drop-shadow(0 0 3px color-mix(in oklch, var(--glass-halo) 92%, transparent))
     drop-shadow(0 0 8px color-mix(in oklch, var(--glass-halo) 78%, transparent))
     drop-shadow(0 0 14px color-mix(in oklch, var(--glass-halo) 55%, transparent))
     drop-shadow(0 1px 0 oklch(1 0 0 / 0.65));
 }
-.dark .glass-fab .glass-mask-icon {
+.dark .glass-fab svg {
   color: oklch(0.99 0.008 85);
+  stroke: oklch(0.99 0.008 85);
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 95%, transparent))
     drop-shadow(0 0 4px color-mix(in oklch, var(--glass-halo) 85%, transparent))
     drop-shadow(0 0 10px color-mix(in oklch, var(--glass-halo) 65%, transparent))
