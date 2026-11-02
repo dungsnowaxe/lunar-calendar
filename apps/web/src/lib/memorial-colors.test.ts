@@ -26,7 +26,7 @@ test("memorialColor spreads across palette entries", () => {
 
 test("memorialColorCss uses the hashed palette token", () => {
   const id = "sample-id";
-  assert.equal(memorialColorCss(id), `var(--color-mem-${memorialColor(id)})`);
+  assert.equal(memorialColorCss(id), `var(--mem-${memorialColor(id)})`);
 });
 
 test("memorialColor is FNV-1a 32-bit of the id, mod 8, in palette order", () => {
