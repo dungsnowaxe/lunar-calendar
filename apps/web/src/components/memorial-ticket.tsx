@@ -105,8 +105,12 @@ export function MemorialTicket({
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[12px] text-[var(--ink-muted)]">{COPY.remaining}</p>
-          <p className="font-heading text-2xl leading-none font-semibold" style={{ color: accent }}>
-            <NumberTicker value={daysLeft} className="text-2xl font-semibold tabular-nums" />
+          <p className="font-heading text-2xl leading-none font-semibold">
+            <NumberTicker
+              value={daysLeft}
+              className="text-2xl font-semibold tabular-nums"
+              style={{ color: accent }}
+            />
             <span className="ml-1 font-sans text-sm font-medium text-[var(--ink-muted)]">
               {COPY.days}
             </span>
@@ -147,8 +151,13 @@ export function MemorialRow({ event, onClick }: { event: MemorialEvent; onClick?
       </span>
       <span className="shrink-0 border-l border-dashed border-[var(--border-warm)] px-3 py-2.5 text-right">
         <span className="block text-[11px] text-[var(--ink-muted)]">{COPY.remaining}</span>
-        <span className="font-heading font-semibold tabular-nums" style={{ color: accent }}>
-          <NumberTicker value={daysLeft} className="font-semibold tabular-nums" /> {COPY.days}
+        <span className="font-heading font-semibold tabular-nums">
+          <NumberTicker
+            value={daysLeft}
+            className="font-semibold tabular-nums"
+            style={{ color: accent }}
+          />
+          <span className="text-[var(--ink-muted)]"> {COPY.days}</span>
         </span>
       </span>
     </button>

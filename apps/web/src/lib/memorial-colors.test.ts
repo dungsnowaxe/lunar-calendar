@@ -28,3 +28,14 @@ test("memorialColorCss uses the hashed palette token", () => {
   const id = "sample-id";
   assert.equal(memorialColorCss(id), `var(--color-mem-${memorialColor(id)})`);
 });
+
+test("memorialColor is FNV-1a 32-bit of the id, mod 8, in palette order", () => {
+  assert.deepEqual(
+    [...MEMORIAL_PALETTE],
+    ["persimmon", "marigold", "olive", "jade", "indigo", "plum", "rose", "moss"],
+  );
+  // FNV-1a("") = 0x811c9dc5 → 5
+  assert.equal(memorialColor(""), "plum");
+  // FNV-1a("a") = 0xe40c292c → 4
+  assert.equal(memorialColor("a"), "indigo");
+});
