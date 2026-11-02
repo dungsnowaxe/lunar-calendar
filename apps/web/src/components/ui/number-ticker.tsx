@@ -38,6 +38,12 @@ export function NumberTicker({
         // Reduced motion: no spring, show the final value immediately.
         motionValue.jump(target);
         springValue.jump(target);
+        if (ref.current) {
+          ref.current.textContent = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: decimalPlaces,
+            maximumFractionDigits: decimalPlaces,
+          }).format(target);
+        }
         return;
       }
       timer = setTimeout(() => {
@@ -50,7 +56,17 @@ export function NumberTicker({
         clearTimeout(timer);
       }
     };
-  }, [motionValue, springValue, isInView, delay, value, direction, startValue, reduce]);
+  }, [
+    motionValue,
+    springValue,
+    isInView,
+    delay,
+    value,
+    direction,
+    startValue,
+    reduce,
+    decimalPlaces,
+  ]);
 
   useEffect(
     () =>

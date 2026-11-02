@@ -42,7 +42,7 @@ export function MobileGlassNav() {
             to="/su-kien"
             search={{ add: "1" }}
             aria-label={COPY.addMemorial}
-            className="glass-fab pointer-events-auto absolute right-0 bottom-[calc(100%+12px)] flex size-[56px] min-h-[56px] min-w-[56px] items-center justify-center rounded-full md:hidden"
+            className="glass-fab glass-fab--lacquer pointer-events-auto absolute right-0 bottom-[calc(100%+12px)] flex size-[56px] min-h-[56px] min-w-[56px] items-center justify-center rounded-full md:hidden"
           >
             <Plus className="h-6 w-6" strokeWidth={2.25} aria-hidden />
           </Link>
