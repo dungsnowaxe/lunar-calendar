@@ -14,7 +14,7 @@ export function GlassNavBubble({
   return (
     <span
       aria-hidden
-      className="glass-nav-bubble pointer-events-none absolute z-0 rounded-full"
+      className="glass-nav-bubble pointer-events-none absolute z-[1] rounded-full"
       style={{
         top: insetPx,
         bottom: insetPx,

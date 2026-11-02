@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { laplacianVariance, rgbaToGray, sharpnessRatio } from "./image-sharpness.ts";
+import {
+  contrastNormalizedEdgeScore,
+  laplacianVariance,
+  rgbaToGray,
+  sharpnessRatio,
+} from "./image-sharpness.ts";
 
 function checkerboard(width: number, height: number, cell: number): Float64Array {
   const gray = new Float64Array(width * height);
@@ -57,4 +62,25 @@ test("Laplacian variance is much lower after a wide blur", () => {
 test("sharpnessRatio is outside / inside", () => {
   assert.equal(sharpnessRatio(100, 10), 10);
   assert.equal(sharpnessRatio(5, 0), Number.POSITIVE_INFINITY);
+});
+
+test("contrast-normalized Sobel still sees dim sharp edges that Laplacian under-scores", () => {
+  const width = 64;
+  const height = 64;
+  const loud = checkerboard(width, height, 4);
+  const dim = new Float64Array(loud.length);
+  for (let i = 0; i < dim.length; i++) dim[i] = loud[i] === 0 ? 40 : 50;
+  const dimBlur = boxBlur(dim, width, height, 8);
+  const dimLap = laplacianVariance(dim, width, height);
+  const loudLap = laplacianVariance(loud, width, height);
+  assert.ok(
+    loudLap / dimLap > 10,
+    `Laplacian should collapse on low contrast: ${loudLap}/${dimLap}`,
+  );
+  const dimEdges = contrastNormalizedEdgeScore(dim, width, height);
+  const blurEdges = contrastNormalizedEdgeScore(dimBlur, width, height);
+  assert.ok(
+    sharpnessRatio(dimEdges, blurEdges) >= 5,
+    `normalized Sobel should still drop ≥5× after blur: ${dimEdges} / ${blurEdges}`,
+  );
 });

@@ -324,15 +324,13 @@
   --score-bad-soft: oklch(0.28 0.05 25);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
   --shadow-float: 0 4px 24px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.3);
-  /* 0.4 left 15px countdown glyphs readable through dark events glass.
-     Residual contrast after blur is (1-α)×ink; the nav pill needs α≈0.88
-     to crush that leftover. FAB can stay a bit more open. */
-  --glass-tint: oklch(0.2 0.012 45 / 0.72);
-  --glass-tint-nav: oklch(0.16 0.01 45 / 0.88);
+  /* See-through dark glass. Pill and FAB share one material. */
+  --glass-tint: oklch(0.24 0.012 45 / 0.58);
+  --glass-tint-nav: var(--glass-tint);
   --glass-halo: oklch(0.22 0.015 45);
-  --glass-blur: 26px;
+  --glass-blur: 40px;
   --glass-saturate: 1.8;
-  --glass-brightness: 1.05;
+  --glass-brightness: 0.95;
   /* Custom property so LightningCSS cannot drop the unprefixed backdrop-filter. */
   --glass-backdrop: blur(var(--glass-blur)) saturate(var(--glass-saturate))
     brightness(var(--glass-brightness));
@@ -417,7 +415,14 @@
    Apply the filter through --glass-backdrop. LightningCSS vendor-prefix
    folding drops a literal `backdrop-filter` when `-webkit-backdrop-filter`
    is also present, and Chromium then computes `none`. `isolation: isolate`
-   is a backdrop root and would sample an empty backdrop. */
+   is a backdrop root and would sample an empty backdrop.
+
+   Chromium skips in-flow page content in the backdrop snapshot when the
+   filtered element has SVG descendants (Lucide / Hugeicons, even without
+   a CSS filter). Tint still composites, so glyphs look dimmed but stay
+   sharp. A child/::before plate also fails: the host is a stacking
+   context, so the plate blurs an empty backdrop. Keep the filter on the
+   host and draw icons with CSS masks (no <svg> in the tree). */
 .glass-pill {
   position: relative;
   background-color: var(--glass-tint);
@@ -426,14 +431,14 @@
   box-shadow: var(--shadow-glass);
   border: 0 solid transparent;
 }
-.glass-pill::before,
-.glass-pill::after {
-  content: none;
-}
 .glass-pill-nav-mobile {
   background-color: var(--glass-tint-nav);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  backdrop-filter: var(--glass-backdrop);
+}
+.glass-pill::before,
+.glass-pill::after,
+.glass-fab::before,
+.glass-fab::after {
+  content: none;
 }
 .glass-pill > .glass-refract-rim,
 .glass-fab > .glass-refract-rim,
@@ -458,6 +463,7 @@
 }
 .glass-nav-bubble {
   position: absolute;
+  z-index: 1;
   overflow: hidden;
   background: var(--glass-bubble);
   border: 0 solid transparent;
@@ -511,20 +517,30 @@
 .dark .glass-nav-item.is-active {
   color: var(--glass-active-fg);
 }
-.glass-nav-item svg {
+.glass-mask-icon {
+  display: block;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+.glass-nav-item .glass-mask-icon {
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 95%, transparent))
     drop-shadow(0 0 4px color-mix(in oklch, var(--glass-halo) 85%, transparent))
     drop-shadow(0 0 10px color-mix(in oklch, var(--glass-halo) 65%, transparent))
     drop-shadow(0 1px 0 oklch(1 0 0 / 0.5));
 }
-.dark .glass-nav-item svg {
+.dark .glass-nav-item .glass-mask-icon {
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 90%, transparent))
     drop-shadow(0 0 5px color-mix(in oklch, var(--glass-halo) 80%, transparent))
     drop-shadow(0 0 12px color-mix(in oklch, var(--glass-halo) 65%, transparent))
     drop-shadow(0 0 1px oklch(0.95 0.01 85 / 0.65));
 }
-.glass-nav-item > svg,
-.glass-nav-item svg,
+.glass-nav-item > .glass-mask-icon,
 .glass-nav-item > span {
   position: relative;
   z-index: 1;
@@ -556,24 +572,18 @@
     opacity 180ms ease,
     translate 180ms ease;
 }
-.glass-fab::before,
-.glass-fab::after {
-  content: none;
-}
-.glass-fab svg {
+.glass-fab .glass-mask-icon {
   position: relative;
   z-index: 3;
   color: var(--color-ink);
-  stroke: var(--color-ink);
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 98%, transparent))
     drop-shadow(0 0 3px color-mix(in oklch, var(--glass-halo) 92%, transparent))
     drop-shadow(0 0 8px color-mix(in oklch, var(--glass-halo) 78%, transparent))
     drop-shadow(0 0 14px color-mix(in oklch, var(--glass-halo) 55%, transparent))
     drop-shadow(0 1px 0 oklch(1 0 0 / 0.65));
 }
-.dark .glass-fab svg {
+.dark .glass-fab .glass-mask-icon {
   color: oklch(0.99 0.008 85);
-  stroke: oklch(0.99 0.008 85);
   filter: drop-shadow(0 0 1px color-mix(in oklch, var(--glass-halo) 95%, transparent))
     drop-shadow(0 0 4px color-mix(in oklch, var(--glass-halo) 85%, transparent))
     drop-shadow(0 0 10px color-mix(in oklch, var(--glass-halo) 65%, transparent))
@@ -623,7 +633,6 @@
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-pill,
-  .glass-pill-nav-mobile,
   .glass-fab {
     --glass-backdrop: none;
     background-color: oklch(0.97 0.01 85 / 0.96);
@@ -631,14 +640,12 @@
     backdrop-filter: none;
   }
   .dark .glass-pill,
-  .dark .glass-pill-nav-mobile,
   .dark .glass-fab {
-    background-color: oklch(0.2 0.012 45 / 0.96);
+    background-color: oklch(0.24 0.012 45 / 0.96);
   }
 }
 @media (prefers-reduced-transparency: reduce) {
   .glass-pill,
-  .glass-pill-nav-mobile,
   .glass-fab {
     --glass-backdrop: none;
     background-color: oklch(0.97 0.01 85 / 0.96) !important;
@@ -646,9 +653,8 @@
     backdrop-filter: none !important;
   }
   .dark .glass-pill,
-  .dark .glass-pill-nav-mobile,
   .dark .glass-fab {
-    background-color: oklch(0.2 0.012 45 / 0.96) !important;
+    background-color: oklch(0.24 0.012 45 / 0.96) !important;
   }
 }
 @media (max-width: 1023px) {

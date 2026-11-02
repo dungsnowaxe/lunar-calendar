@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { MonitorIcon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 
+import { GlassMaskIcon, type GlassIconNode } from "~/components/glass-mask-icon";
 import { GlassNavBubble } from "~/components/glass-nav-bubble";
 import { cn } from "~/lib/utils";
 
 type Theme = "light" | "dark" | "system";
 
-const OPTIONS: { value: Theme; label: string; icon: typeof Sun03Icon }[] = [
-  { value: "light", label: "Sáng", icon: Sun03Icon },
-  { value: "dark", label: "Tối", icon: Moon02Icon },
-  { value: "system", label: "Theo hệ thống", icon: MonitorIcon },
+const OPTIONS: { value: Theme; label: string; icon: readonly GlassIconNode[] }[] = [
+  { value: "light", label: "Sáng", icon: Sun03Icon as unknown as readonly GlassIconNode[] },
+  { value: "dark", label: "Tối", icon: Moon02Icon as unknown as readonly GlassIconNode[] },
+  {
+    value: "system",
+    label: "Theo hệ thống",
+    icon: MonitorIcon as unknown as readonly GlassIconNode[],
+  },
 ];
 
 /** Mirrors the pre-paint script in __root.tsx. */
@@ -95,7 +99,7 @@ export function ThemeSwitch() {
         }}
         className="theme-toggle glass-nav-item relative z-10 flex size-[44px] min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full"
       >
-        <HugeiconsIcon icon={current.icon} className="size-4" />
+        <GlassMaskIcon nodes={current.icon} className="size-4" strokeWidth={1.5} />
       </button>
       <div className="theme-options relative z-10 flex items-center gap-0">
         {OPTIONS.map(({ value, label, icon: Icon }) => {
@@ -119,7 +123,7 @@ export function ThemeSwitch() {
                 isActive && "is-active",
               )}
             >
-              <HugeiconsIcon icon={Icon} className="size-4" strokeWidth={isActive ? 2.25 : 2} />
+              <GlassMaskIcon nodes={Icon} className="size-4" strokeWidth={isActive ? 2.25 : 1.5} />
             </button>
           );
         })}
