@@ -61,10 +61,16 @@ function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            render={<Button variant="ghost" className="absolute top-4 right-4" size="icon-sm" />}
+            render={
+              <Button
+                variant="ghost"
+                className="absolute top-2 right-2 size-[44px] min-h-[44px] min-w-[44px]"
+                size="icon-lg"
+              />
+            }
           >
             <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">Đóng</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>
@@ -87,7 +93,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sheet-footer"
       className={cn(
-        "mt-auto flex flex-row gap-2 p-6 [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:flex-1",
+        "mt-auto flex flex-row gap-2 p-6 [&>button]:min-h-[44px] [&>button]:min-w-0 [&>button]:flex-1",
         className,
       )}
       {...props}

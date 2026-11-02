@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
 import { getSupabaseServerClient } from "~/utils/supabase";
 import {
   createMemorialEvents,
+  EVENT_SELECT_BASE,
   eventInputSchema,
   firstIssue,
   mapRow,
@@ -20,13 +22,12 @@ export const listEventsFn = createServerFn({ method: "GET" }).handler(async () =
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
     .from("memorial_events")
-    .select("id, title, lunar_day, lunar_month, notes, created_at")
-    .order("lunar_month", { ascending: true })
-    .order("lunar_day", { ascending: true });
+    .select(EVENT_SELECT_BASE)
+    .order("created_at", { ascending: true });
   if (error) {
     throw new Error(`Không thể tải sự kiện: ${error.message}`);
   }
-  return (data as EventRow[]).map(mapRow);
+  return ((data ?? []) as EventRow[]).map(mapRow);
 });
 
 export const createEventsFn = createServerFn({ method: "POST" })
@@ -52,7 +53,7 @@ export const updateEventFn = createServerFn({ method: "POST" })
         notes: parsed.data.notes,
       })
       .eq("id", parsed.data.id)
-      .select("id, title, lunar_day, lunar_month, notes, created_at")
+      .select(EVENT_SELECT_BASE)
       .single();
     if (error) {
       return { error: `Không thể cập nhật sự kiện: ${error.message}` };

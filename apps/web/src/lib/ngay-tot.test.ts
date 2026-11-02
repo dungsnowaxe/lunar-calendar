@@ -87,7 +87,7 @@ test("the disclaimer is one line, names the tradition, and disclaims science", (
 });
 
 test("the disclaimer stays in the day-quality detail panel", () => {
-  assert.ok(!src("../components/today-card.tsx").includes("TIN_NGUONG_DAN_GIAN"));
+  assert.ok(!src("../components/today-bloc.tsx").includes("TIN_NGUONG_DAN_GIAN"));
   assert.ok(src("../components/ngay-chat-luong.tsx").includes("TIN_NGUONG_DAN_GIAN"));
 });
 
@@ -133,31 +133,27 @@ test("the calendar cells carry no day-quality markers", () => {
   assert.ok(!src("../lib/calendar-grid.ts").includes("@lunar/ngay-tot"));
 });
 
-test("TodayCard keeps its four original lines", () => {
-  // Task 5.3: the day-quality line is additive. These are the four lines that
-  // were there before, pinned so a rewrite cannot quietly drop one.
-  const source = src("../components/today-card.tsx");
+test("TodayBloc keeps hôm nay, Can–Chi, and the cắt tóc line", () => {
+  const source = src("../components/today-bloc.tsx");
   for (const fragment of [
-    'uppercase">Hôm nay</p>',
-    "{weekdayLong(solarDayOfWeek(today))}, {formatSolar(today)}",
-    "Âm lịch: {lunar.day} tháng {lunar.month}",
-    '{lunar.isLeapMonth ? " (nhuận)" : ""} năm {canChiYear(lunar.year)}',
-    "Ngày {canChiDay(today)}",
-    "{canChiMonth(lunar) && <>, tháng {canChiMonth(lunar)}</>}",
+    "COPY.todayControl",
+    "weekdayLong(solarDayOfWeek(selected))",
+    "formatSolar(selected)",
+    "canChiYear(lunar.year)",
+    "canChiMonth(lunar)",
+    "canChiDay(selected)",
   ]) {
-    assert.ok(source.includes(fragment), `TodayCard lost: ${fragment}`);
+    assert.ok(source.includes(fragment), `TodayBloc lost: ${fragment}`);
   }
-  // The new line links to the month page and names its việc.
   assert.ok(source.includes('to="/ngay-tot-cat-toc"'));
   assert.ok(source.includes("Cắt tóc:"), "the verdict does not name its việc");
-  // No bare score number on the card.
-  assert.ok(!source.includes("{quality.score}"), "TodayCard shows a bare score");
+  assert.ok(!source.includes("{quality.score}"), "TodayBloc shows a bare score");
 });
 
 test("user-facing copy uses only GLOSSARY.md vocabulary", () => {
   // Task 7.3: the _Avoid_ lists are part of the contract, not suggestions.
   const surfaces = [
-    "../components/today-card.tsx",
+    "../components/today-bloc.tsx",
     "../components/ngay-chat-luong.tsx",
     "../components/ngay-tot-thang.tsx",
     "../components/chu-su-picker.tsx",

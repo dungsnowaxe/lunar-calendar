@@ -1,8 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatSolar, nextOccurrences, solarToday } from "@lunar/core";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -12,6 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "~/components/ui/drawer";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -21,93 +28,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "~/components/ui/sheet";
 import { Textarea } from "~/components/ui/textarea";
-import { useIsDesktop } from "~/hooks/use-min-width";
-import { createEventsFn, updateEventFn } from "~/server/events";
+import { useIsMd } from "~/hooks/use-min-width";
+import { COPY } from "~/lib/copy";
+import { createEventsFn, updateEventFn, type MemorialEvent } from "~/server/events";
 
 interface EventFormOverlayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** When present the overlay edits this event instead of creating one. */
-  event?: {
-    id: string;
-    title: string;
-    lunarDay: number;
-    lunarMonth: number;
-    notes: string | null;
-  };
+  event?: Pick<MemorialEvent, "id" | "title" | "lunarDay" | "lunarMonth" | "notes">;
   onSaved: () => void | Promise<void>;
 }
 
-interface EventDraft {
-  key: string;
-  title: string;
-  lunarDay: string;
-  lunarMonth: string;
-  notes: string;
-}
+type DateRow = { key: string; lunarDay: string; lunarMonth: string };
 
 const DAYS = Array.from({ length: 30 }, (_, i) => String(i + 1));
 const MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1));
-const MAX_ENTRIES = 10;
+const MAX_DATES = 10;
 const DEFAULT_DAY = "10";
 const DEFAULT_MONTH = "1";
-
 const dayItems: Record<string, string> = Object.fromEntries(DAYS.map((day) => [day, day]));
 const monthItems: Record<string, string> = Object.fromEntries(
   MONTHS.map((month) => [month, month]),
 );
 
-let draftKey = 0;
-
-function emptyDraft(): EventDraft {
-  draftKey += 1;
-  return {
-    key: String(draftKey),
-    title: "",
-    lunarDay: DEFAULT_DAY,
-    lunarMonth: DEFAULT_MONTH,
-    notes: "",
-  };
-}
-
-function draftFromEvent(event: NonNullable<EventFormOverlayProps["event"]>): EventDraft {
-  draftKey += 1;
-  return {
-    key: String(draftKey),
-    title: event.title,
-    lunarDay: String(event.lunarDay),
-    lunarMonth: String(event.lunarMonth),
-    notes: event.notes ?? "",
-  };
-}
-
-function toPayload(draft: EventDraft) {
-  return {
-    title: draft.title,
-    lunarDay: Number(draft.lunarDay),
-    lunarMonth: Number(draft.lunarMonth),
-    notes: draft.notes || null,
-  };
+let rowKey = 0;
+function newDateRow(day = DEFAULT_DAY, month = DEFAULT_MONTH): DateRow {
+  rowKey += 1;
+  return { key: String(rowKey), lunarDay: day, lunarMonth: month };
 }
 
 export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFormOverlayProps) {
-  const isDesktop = useIsDesktop();
+  const isMd = useIsMd();
   const formId = useId();
-  const [entries, setEntries] = useState<EventDraft[]>(() => [emptyDraft()]);
+  const isEdit = event != null;
+
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [dates, setDates] = useState<DateRow[]>(() => [newDateRow()]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pendingRef = useRef(false);
   const saveIdRef = useRef(0);
-  const isEdit = event != null;
 
   function setSavePending(next: boolean) {
     pendingRef.current = next;
@@ -116,7 +78,9 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
 
   function resetForm() {
     saveIdRef.current += 1;
-    setEntries([emptyDraft()]);
+    setTitle("");
+    setNotes("");
+    setDates([newDateRow()]);
     setSavePending(false);
     setError(null);
   }
@@ -124,10 +88,13 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
   useEffect(() => {
     if (!open) return;
     saveIdRef.current += 1;
-    // Re-seed the draft each time the dialog opens, for a new entry or a
-    // different existing event.
+    // Re-seed the draft each time the dialog opens.
     // oxlint-disable-next-line react/set-state-in-effect
-    setEntries(event ? [draftFromEvent(event)] : [emptyDraft()]);
+    setTitle(event?.title ?? "");
+    setNotes(event?.notes ?? "");
+    setDates(
+      event ? [newDateRow(String(event.lunarDay), String(event.lunarMonth))] : [newDateRow()],
+    );
     setSavePending(false);
     setError(null);
   }, [open, event]);
@@ -141,36 +108,28 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
     onOpenChange(next);
   }
 
-  function updateEntry(key: string, patch: Partial<EventDraft>) {
-    setEntries((current) =>
-      current.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)),
-    );
-  }
-
-  function addEntry() {
-    setEntries((current) => (current.length >= MAX_ENTRIES ? current : [...current, emptyDraft()]));
-  }
-
-  function removeEntry(key: string) {
-    setEntries((current) =>
-      current.length <= 1 ? current : current.filter((entry) => entry.key !== key),
-    );
-  }
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const saveId = ++saveIdRef.current;
     setSavePending(true);
     setError(null);
+
+    const payloads = dates.map((row) => ({
+      title,
+      lunarDay: Number(row.lunarDay),
+      lunarMonth: Number(row.lunarMonth),
+      notes: notes || null,
+    }));
+
     let result:
       | Awaited<ReturnType<typeof updateEventFn>>
       | Awaited<ReturnType<typeof createEventsFn>>;
     try {
       result = isEdit
         ? await updateEventFn({
-            data: { ...toPayload(entries[0]!), id: event.id },
+            data: { ...payloads[0]!, id: event.id },
           })
-        : await createEventsFn({ data: entries.map(toPayload) });
+        : await createEventsFn({ data: payloads });
     } catch {
       if (saveId !== saveIdRef.current) return;
       setSavePending(false);
@@ -183,7 +142,8 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
       setError(result.error);
       return;
     }
-    const count = entries.length;
+
+    const count = dates.length;
     toast.success(
       isEdit ? "Đã cập nhật sự kiện" : count > 1 ? `Đã thêm ${count} sự kiện` : "Đã thêm sự kiện",
     );
@@ -191,55 +151,54 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
     await onSaved();
   }
 
-  const saveLabel = pending
-    ? "Đang lưu…"
-    : isEdit
-      ? "Lưu thay đổi"
-      : entries.length > 1
-        ? `Thêm ${entries.length} sự kiện`
-        : "Thêm sự kiện";
+  const saveLabel = pending ? "Đang lưu…" : isEdit ? COPY.saveEdit : COPY.saveAdd;
 
-  const title = isEdit ? "Sửa sự kiện" : "Thêm sự kiện giỗ";
-  const description = "Nhập ngày âm lịch, ngày giỗ sẽ lặp lại đúng ngày đó mỗi năm.";
-
+  const heading = isEdit ? COPY.formEditTitle : COPY.formAddTitle;
   const fields = (
-    <EntryList
+    <FormFields
       formId={formId}
-      entries={entries}
       isEdit={isEdit}
       pending={pending}
-      onUpdate={updateEntry}
-      onRemove={removeEntry}
-      onAdd={addEntry}
+      title={title}
+      notes={notes}
+      dates={dates}
+      onTitle={setTitle}
+      onNotes={setNotes}
+      onDates={setDates}
     />
   );
-
   const actions = (
     <>
       <Button
         type="button"
         variant="outline"
+        className="min-h-[44px] rounded-full"
         onClick={() => handleOpenChange(false)}
         disabled={pending}
       >
-        Hủy
+        {COPY.cancel}
       </Button>
-      <Button type="submit" form={formId} disabled={pending}>
+      <Button
+        type="submit"
+        form={formId}
+        className="min-h-[44px] rounded-full"
+        disabled={pending || !title.trim()}
+      >
         {saveLabel}
       </Button>
     </>
   );
 
-  if (isDesktop) {
+  if (isMd) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
         <DialogContent
-          className="max-h-[85vh] max-w-lg overflow-y-auto sm:max-w-lg"
+          className="max-h-[85vh] max-w-lg overflow-y-auto rounded-[28px] bg-[var(--cream-elevated)] sm:max-w-lg"
           showCloseButton={!pending}
         >
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+          <DialogHeader className="pr-14">
+            <DialogTitle className="font-heading text-xl">{heading}</DialogTitle>
+            <DialogDescription>{COPY.formHelp}</DialogDescription>
           </DialogHeader>
           <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4">
             {fields}
@@ -252,208 +211,181 @@ export function EventFormOverlay({ open, onOpenChange, event, onSaved }: EventFo
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
-      <SheetContent
-        side="bottom"
-        className="flex max-h-[90dvh] flex-col gap-0 p-0"
-        showCloseButton={!pending}
-      >
-        <SheetHeader className="shrink-0 pr-12">
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <Drawer open={open} onOpenChange={handleOpenChange} disablePointerDismissal={pending}>
+      <DrawerContent className="flex max-h-[90dvh] flex-col gap-0" showCloseButton={!pending}>
+        <DrawerHeader className="shrink-0 pr-14">
+          <DrawerTitle>{heading}</DrawerTitle>
+          <DrawerDescription>{COPY.formHelp}</DrawerDescription>
+        </DrawerHeader>
         <form id={formId} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-2">{fields}</div>
-          {error && <p className="shrink-0 px-6 pb-2 text-sm text-destructive">{error}</p>}
-          <SheetFooter className="shrink-0 sm:flex-row sm:justify-end pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-            {actions}
-          </SheetFooter>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">{fields}</div>
+          {error && <p className="shrink-0 px-5 pb-2 text-sm text-destructive">{error}</p>}
+          <DrawerFooter className="shrink-0 sm:flex-row sm:justify-end">{actions}</DrawerFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
-function EntryList({
+function FormFields({
   formId,
-  entries,
   isEdit,
   pending,
-  onUpdate,
-  onRemove,
-  onAdd,
+  title,
+  notes,
+  dates,
+  onTitle,
+  onNotes,
+  onDates,
 }: {
   formId: string;
-  entries: EventDraft[];
   isEdit: boolean;
   pending: boolean;
-  onUpdate: (key: string, patch: Partial<EventDraft>) => void;
-  onRemove: (key: string) => void;
-  onAdd: () => void;
+  title: string;
+  notes: string;
+  dates: DateRow[];
+  onTitle: (value: string) => void;
+  onNotes: (value: string) => void;
+  onDates: (value: DateRow[]) => void;
 }) {
-  const canRemove = !isEdit && entries.length > 1;
-  const canAdd = !isEdit && entries.length < MAX_ENTRIES;
+  const titleId = `${formId}-title`;
+  const notesId = `${formId}-notes`;
+  const canAdd = !isEdit && dates.length < MAX_DATES;
 
   return (
-    <div className="flex flex-col gap-4">
-      {entries.map((entry, index) => (
-        <EntryCard
-          key={entry.key}
-          formId={formId}
-          index={index}
-          entry={entry}
-          showIndex={!isEdit && entries.length > 1}
-          canRemove={canRemove}
-          pending={pending}
-          onUpdate={onUpdate}
-          onRemove={onRemove}
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor={titleId} className="mb-1.5">
+          {COPY.nameLabel}
+        </Label>
+        <Input
+          id={titleId}
+          value={title}
+          onChange={(e) => onTitle(e.target.value)}
+          placeholder={COPY.namePlaceholder}
+          required
+          maxLength={120}
+          disabled={pending}
+          className="h-[44px] min-h-[44px] rounded-full"
         />
+      </div>
+
+      {dates.map((row, index) => (
+        <div
+          key={row.key}
+          className="space-y-3 rounded-[20px] border border-[var(--border-warm)] p-3"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium">
+              {COPY.lunarBlock}
+              {dates.length > 1 ? ` #${index + 1}` : ""}
+            </p>
+            {dates.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-[44px] min-h-[44px] min-w-[44px]"
+                aria-label="Xóa ngày"
+                disabled={pending}
+                onClick={() => onDates(dates.filter((item) => item.key !== row.key))}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={`${formId}-day-${row.key}`}>{COPY.dayLabel}</Label>
+              <Select
+                items={dayItems}
+                value={row.lunarDay}
+                onValueChange={(value) => {
+                  if (value == null) return;
+                  onDates(
+                    dates.map((item) =>
+                      item.key === row.key ? { ...item, lunarDay: String(value) } : item,
+                    ),
+                  );
+                }}
+                disabled={pending}
+              >
+                <SelectTrigger
+                  id={`${formId}-day-${row.key}`}
+                  className="h-[44px] min-h-[44px] w-full rounded-full"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS.map((day) => (
+                    <SelectItem key={day} value={day}>
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={`${formId}-month-${row.key}`}>{COPY.monthLabel}</Label>
+              <Select
+                items={monthItems}
+                value={row.lunarMonth}
+                onValueChange={(value) => {
+                  if (value == null) return;
+                  onDates(
+                    dates.map((item) =>
+                      item.key === row.key ? { ...item, lunarMonth: String(value) } : item,
+                    ),
+                  );
+                }}
+                disabled={pending}
+              >
+                <SelectTrigger
+                  id={`${formId}-month-${row.key}`}
+                  className="h-[44px] min-h-[44px] w-full rounded-full"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-[12px] text-[var(--ink-muted)]">{COPY.autoNextHint}</p>
+        </div>
       ))}
+
       {canAdd && (
         <Button
           type="button"
           variant="outline"
-          onClick={onAdd}
+          className="min-h-[44px] w-full rounded-full"
           disabled={pending}
-          className="self-start"
+          onClick={() => onDates([...dates, newDateRow()])}
         >
-          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
-          Thêm ngày
+          <Plus className="size-4" /> {COPY.addDateLabel}
         </Button>
       )}
-    </div>
-  );
-}
 
-function EntryCard({
-  formId,
-  index,
-  entry,
-  showIndex,
-  canRemove,
-  pending,
-  onUpdate,
-  onRemove,
-}: {
-  formId: string;
-  index: number;
-  entry: EventDraft;
-  showIndex: boolean;
-  canRemove: boolean;
-  pending: boolean;
-  onUpdate: (key: string, patch: Partial<EventDraft>) => void;
-  onRemove: (key: string) => void;
-}) {
-  const titleId = `${formId}-title-${entry.key}`;
-  const dayId = `${formId}-day-${entry.key}`;
-  const monthId = `${formId}-month-${entry.key}`;
-  const notesId = `${formId}-notes-${entry.key}`;
-  const nextOccurrence = nextOccurrences(
-    { lunarDay: Number(entry.lunarDay), lunarMonth: Number(entry.lunarMonth) },
-    solarToday(),
-    1,
-  )[0];
-
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl ring-1 ring-foreground/10 p-4">
-      {(showIndex || canRemove) && (
-        <div className="flex items-center justify-between gap-2">
-          {showIndex ? (
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Ngày giỗ {index + 1}
-            </p>
-          ) : (
-            <span />
-          )}
-          {canRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Xóa ngày giỗ ${index + 1}`}
-              onClick={() => onRemove(entry.key)}
-              disabled={pending}
-            >
-              <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-            </Button>
-          )}
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={titleId}>Tên sự kiện</Label>
-        <Input
-          id={titleId}
-          value={entry.title}
-          onChange={(e) => onUpdate(entry.key, { title: e.target.value })}
-          placeholder="VD: Giỗ tổ, giỗ ông nội, giỗ bà ngoại…"
-          required
-          maxLength={120}
-          disabled={pending}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={dayId}>Ngày</Label>
-          <Select
-            items={dayItems}
-            value={entry.lunarDay}
-            onValueChange={(value) => {
-              if (value != null) onUpdate(entry.key, { lunarDay: String(value) });
-            }}
-            disabled={pending}
-          >
-            <SelectTrigger id={dayId} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DAYS.map((day) => (
-                <SelectItem key={day} value={day}>
-                  {day}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={monthId}>Tháng</Label>
-          <Select
-            items={monthItems}
-            value={entry.lunarMonth}
-            onValueChange={(value) => {
-              if (value != null) onUpdate(entry.key, { lunarMonth: String(value) });
-            }}
-            disabled={pending}
-          >
-            <SelectTrigger id={monthId} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((month) => (
-                <SelectItem key={month} value={month}>
-                  {month}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={notesId}>Ghi chú</Label>
+      <div>
+        <Label htmlFor={notesId} className="mb-1.5">
+          {COPY.noteLabel}
+        </Label>
         <Textarea
           id={notesId}
-          value={entry.notes}
-          onChange={(e) => onUpdate(entry.key, { notes: e.target.value })}
-          placeholder="VD: Cúng vào buổi trưa, dâng hương ở nhà thờ…"
+          value={notes}
+          onChange={(e) => onNotes(e.target.value)}
+          placeholder={COPY.notePlaceholder}
           maxLength={500}
           disabled={pending}
+          className="rounded-[20px]"
         />
       </div>
-      {nextOccurrence && (
-        <p className="text-sm text-muted-foreground">
-          Lần tới vào:{" "}
-          <span className="font-medium text-foreground">{formatSolar(nextOccurrence)}</span>
-        </p>
-      )}
     </div>
   );
 }

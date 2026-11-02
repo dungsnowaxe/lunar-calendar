@@ -57,6 +57,8 @@ export interface EventRow {
   created_at: string;
 }
 
+export const EVENT_SELECT_BASE = "id, title, lunar_day, lunar_month, notes, created_at";
+
 export function mapRow(row: EventRow): MemorialEvent {
   return {
     id: row.id,
@@ -94,19 +96,15 @@ export async function createMemorialEvents(
   if (!parsed.success) {
     return { error: firstIssue(parsed.error) };
   }
-  const { data: rows, error } = await supabase
-    .from("memorial_events")
-    .insert(
-      parsed.data.map((item) => ({
-        title: item.title,
-        lunar_day: item.lunarDay,
-        lunar_month: item.lunarMonth,
-        notes: item.notes,
-      })),
-    )
-    .select("id, title, lunar_day, lunar_month, notes, created_at");
-  if (error) {
-    return { error: `Không thể tạo sự kiện: ${error.message}` };
+  const values: MemorialEventInsert[] = parsed.data.map((item) => ({
+    title: item.title,
+    lunar_day: item.lunarDay,
+    lunar_month: item.lunarMonth,
+    notes: item.notes,
+  }));
+  const inserted = await supabase.from("memorial_events").insert(values).select(EVENT_SELECT_BASE);
+  if (inserted.error) {
+    return { error: `Không thể tạo sự kiện: ${inserted.error.message}` };
   }
-  return { events: (rows as EventRow[]).map(mapRow) };
+  return { events: (inserted.data as EventRow[]).map(mapRow) };
 }

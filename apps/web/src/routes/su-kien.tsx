@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon, Edit02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
-import { formatSolar, nextOccurrences, solarToday } from "@lunar/core";
-import { deleteEventFn, listEventsFn, type MemorialEvent } from "~/server/events";
+import { Plus } from "lucide-react";
+import { z } from "zod";
+import { solarToday } from "@lunar/core";
+
+import { EmptyMemorials } from "~/components/empty-memorials";
 import { EventFormOverlay } from "~/components/event-form-overlay";
-import { daysBetween, daysUntilLabel, eventRuleLabel } from "~/lib/labels";
-import { memorialEventIcon } from "~/lib/memorial";
+import { MemorialTicket } from "~/components/memorial-ticket";
+import { BlurFade } from "~/components/magic/blur-fade";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,84 +20,72 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { COPY, deleteBody } from "~/lib/copy";
+import { sortByNextOccurrence } from "~/lib/memorial-sort";
+import { deleteEventFn, listEventsFn, type MemorialEvent } from "~/server/events";
 
 export const Route = createFileRoute("/su-kien")({
+  validateSearch: z.object({
+    add: z.string().optional(),
+  }),
   loader: () => listEventsFn(),
   component: EventsPage,
 });
 
 function EventsPage() {
   const router = useRouter();
+  const { add } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const events = Route.useLoaderData();
-  const [formOpen, setFormOpen] = useState(false);
+  const sorted = sortByNextOccurrence(events, solarToday());
+  const [formOpen, setFormOpen] = useState(add === "1");
   const [editing, setEditing] = useState<MemorialEvent | undefined>(undefined);
+  const [deleting, setDeleting] = useState<MemorialEvent | undefined>(undefined);
 
   function refresh() {
     return router.invalidate();
   }
 
-  return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-6">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-xl font-semibold">Sự kiện giỗ</h1>
-          <p className="text-sm text-muted-foreground">
-            Lưu theo ngày âm lịch. Ngày dương lịch được tính tự động mỗi năm.
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setFormOpen(true);
-          }}
-        >
-          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
-          Thêm sự kiện
-        </Button>
-      </div>
+  function openCreate() {
+    setEditing(undefined);
+    setFormOpen(true);
+  }
 
-      {events.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <HugeiconsIcon
-              icon={memorialEventIcon}
-              className="size-8 text-muted-foreground"
-              strokeWidth={1.5}
-            />
-            <p className="text-sm text-muted-foreground">
-              Chưa có sự kiện nào. Thêm ngày giỗ đầu tiên của gia đình bạn.
+  return (
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-6 md:py-8">
+      <BlurFade>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-heading text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+              {COPY.eventsTitle}
+            </h1>
+            <p className="mt-1.5 max-w-md text-[14px] text-[var(--ink-muted)]">
+              {COPY.eventsSubtitle}
             </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditing(undefined);
-                setFormOpen(true);
-              }}
-            >
-              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} data-icon="inline-start" />
-              Thêm sự kiện
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <Button className="min-h-[44px] rounded-full" onClick={openCreate}>
+            <Plus className="size-4" /> {COPY.addEventLabel}
+          </Button>
+        </div>
+      </BlurFade>
+
+      {sorted.length === 0 ? (
+        <BlurFade delay={0.05}>
+          <EmptyMemorials variant="page" onAdd={openCreate} />
+        </BlurFade>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onEdit={() => {
-                setEditing(event);
-                setFormOpen(true);
-              }}
-            />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {sorted.map((event, index) => (
+            <BlurFade key={event.id} delay={0.04 * Math.min(index, 6)}>
+              <MemorialTicket
+                event={event}
+                onEdit={() => {
+                  setEditing(event);
+                  setFormOpen(true);
+                }}
+                onDelete={() => setDeleting(event)}
+              />
+            </BlurFade>
           ))}
         </div>
       )}
@@ -105,26 +94,31 @@ function EventsPage() {
         open={formOpen}
         onOpenChange={(open) => {
           setFormOpen(open);
-          if (!open) setEditing(undefined);
+          if (!open) {
+            setEditing(undefined);
+            if (add === "1") void navigate({ search: {}, replace: true });
+          }
         }}
         event={editing}
         onSaved={refresh}
       />
+
+      <DeleteConfirm event={deleting} onClose={() => setDeleting(undefined)} onDeleted={refresh} />
     </main>
   );
 }
 
-function EventCard({ event, onEdit }: { event: MemorialEvent; onEdit: () => void }) {
-  const router = useRouter();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const today = solarToday();
-  const upcoming = nextOccurrences(
-    { lunarDay: event.lunarDay, lunarMonth: event.lunarMonth },
-    today,
-    3,
-  );
-
+function DeleteConfirm({
+  event,
+  onClose,
+  onDeleted,
+}: {
+  event: MemorialEvent | undefined;
+  onClose: () => void;
+  onDeleted: () => void | Promise<void>;
+}) {
   async function handleDelete() {
+    if (!event) return;
     let result: { error?: string };
     try {
       result = await deleteEventFn({ data: event.id });
@@ -137,78 +131,26 @@ function EventCard({ event, onEdit }: { event: MemorialEvent; onEdit: () => void
       return;
     }
     toast.success(`Đã xóa "${event.title}"`);
-    setConfirmOpen(false);
-    await router.invalidate();
+    onClose();
+    await onDeleted();
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={memorialEventIcon}
-            className="size-4 shrink-0 text-primary"
-            strokeWidth={2}
-          />
-          <span className="truncate">{event.title}</span>
-        </CardTitle>
-        <CardDescription>{eventRuleLabel(event)}</CardDescription>
-        <CardAction>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Sửa ${event.title}`}
-              onClick={onEdit}
-            >
-              <HugeiconsIcon icon={Edit02Icon} strokeWidth={2} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Xóa ${event.title}`}
-              onClick={() => setConfirmOpen(true)}
-            >
-              <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-            </Button>
-          </div>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Ba lần tới
-        </p>
-        <ul className="flex flex-wrap gap-2">
-          {upcoming.map((date) => {
-            const days = daysBetween(today, date);
-            return (
-              <li
-                key={`${date.day}-${date.month}-${date.year}`}
-                className="rounded-xl bg-muted/60 px-2.5 py-1 text-xs"
-              >
-                {formatSolar(date)}
-                <span className="ml-1.5 text-muted-foreground">({daysUntilLabel(days)})</span>
-              </li>
-            );
-          })}
-        </ul>
-        {event.notes && <p className="mt-3 text-sm text-muted-foreground">{event.notes}</p>}
-      </CardContent>
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa sự kiện?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc muốn xóa "{event.title}"? Thao tác này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Giữ lại</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Card>
+    <AlertDialog open={!!event} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent className="rounded-[28px] bg-[var(--cream-elevated)]">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="font-heading">{COPY.deleteTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{event ? deleteBody(event.title) : ""}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="min-h-[44px] rounded-full">
+            {COPY.deleteCancel}
+          </AlertDialogCancel>
+          <AlertDialogAction className="min-h-[44px] rounded-full" onClick={handleDelete}>
+            {COPY.deleteConfirm}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
