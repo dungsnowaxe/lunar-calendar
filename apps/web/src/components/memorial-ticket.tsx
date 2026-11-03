@@ -42,7 +42,10 @@ export function MemorialTicket({
       <div className="p-4 pt-4 pr-4 pb-3 pl-5 sm:px-5 sm:pt-4 sm:pr-5 sm:pb-3 sm:pl-6">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-heading text-[17px] leading-snug font-semibold text-[var(--ink)] sm:text-lg">
+            <h3
+              className="font-heading text-[17px] leading-snug font-semibold text-[var(--ink)] sm:text-lg"
+              data-memorial-title
+            >
               {event.title}
             </h3>
             <p className="mt-1 text-[13px] text-[var(--ink-muted)]">
@@ -50,7 +53,7 @@ export function MemorialTicket({
             </p>
           </div>
           {(onEdit || onDelete) && (
-            <div className="flex shrink-0 gap-1">
+            <div className="flex shrink-0 gap-1" data-fab-obstruct>
               {onEdit && (
                 <Button
                   variant="ghost"
@@ -92,7 +95,7 @@ export function MemorialTicket({
         <div className="perforation mx-4" />
       </div>
       <div
-        className="flex items-center justify-between gap-3 px-4 py-3 pl-5 sm:px-5 sm:pl-6"
+        className="countdown-clear-fab flex items-center justify-between gap-3 px-4 py-3 pl-5 sm:px-5 sm:pl-6"
         style={{
           background: `color-mix(in oklch, ${accent} 8%, var(--cream-elevated))`,
         }}
@@ -103,9 +106,9 @@ export function MemorialTicket({
             {next ? formatSolar(next) : "—"}
           </p>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 text-right" data-countdown-block>
           <p className="text-[12px] text-[var(--ink-muted)]">{COPY.remaining}</p>
-          <p className="font-heading text-2xl leading-none font-semibold">
+          <p className="font-heading text-2xl leading-none font-semibold" data-countdown-value>
             <NumberTicker
               value={daysLeft}
               className="text-2xl font-semibold tabular-nums"
@@ -140,7 +143,10 @@ export function MemorialRow({ event, onClick }: { event: MemorialEvent; onClick?
     >
       <span className="w-1.5 shrink-0" style={{ background: accent }} aria-hidden />
       <span className="min-w-0 flex-1 px-3 py-2.5">
-        <span className="block truncate text-[14px] font-medium text-[var(--ink)]">
+        <span
+          className="block truncate text-[14px] font-medium text-[var(--ink)]"
+          data-memorial-title
+        >
           {event.title}
         </span>
         <span className="mt-0.5 block text-[12px] text-[var(--ink-muted)]">
@@ -149,9 +155,12 @@ export function MemorialRow({ event, onClick }: { event: MemorialEvent; onClick?
             : lunarRule(event.lunarDay, event.lunarMonth)}
         </span>
       </span>
-      <span className="shrink-0 border-l border-dashed border-[var(--border-warm)] px-3 py-2.5 text-right">
+      <span
+        className="countdown-clear-fab shrink-0 border-l border-dashed border-[var(--border-warm)] px-3 py-2.5 text-right"
+        data-countdown-block
+      >
         <span className="block text-[11px] text-[var(--ink-muted)]">{COPY.remaining}</span>
-        <span className="font-heading font-semibold tabular-nums">
+        <span className="font-heading font-semibold tabular-nums" data-countdown-value>
           <NumberTicker
             value={daysLeft}
             className="font-semibold tabular-nums"

@@ -76,10 +76,11 @@ export function ThemeSwitch() {
       ref={pickerRef}
       aria-label="Chế độ giao diện"
       className={cn(
-        "theme-picker glass-pill relative flex items-center rounded-full p-[4px]",
+        "theme-picker glass-pill glass-theme-pill relative flex items-center rounded-full p-[4px]",
         expanded && "is-expanded",
       )}
     >
+      <span aria-hidden className="glass-refract-rim" />
       <GlassNavBubble activeIndex={activeIndex} insetPx={4} gapPx={0} />
       <button
         ref={toggleRef}

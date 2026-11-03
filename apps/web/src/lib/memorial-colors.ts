@@ -29,5 +29,7 @@ export function memorialColor(id: string): MemorialColorId {
 }
 
 export function memorialColorCss(id: string): string {
-  return `var(--color-mem-${memorialColor(id)})`;
+  // `--mem-*` is declared on :root / .dark. `--color-mem-*` lives only in
+  // `@theme inline` and is not emitted to the built stylesheet.
+  return `var(--mem-${memorialColor(id)})`;
 }

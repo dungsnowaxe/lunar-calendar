@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ComponentPropsWithoutRef } from "react";
-import { useInView, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { useInView, useMotionValue, useSpring } from "motion/react";
 
+import { usePrefersLessMotion } from "~/hooks/use-prefers-less-motion";
 import { cn } from "~/lib/utils";
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
@@ -27,7 +28,7 @@ export function NumberTicker({
     stiffness: 100,
   });
   const isInView = useInView(ref, { once: true, margin: "0px" });
-  const reduce = useReducedMotion();
+  const reduce = usePrefersLessMotion();
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;

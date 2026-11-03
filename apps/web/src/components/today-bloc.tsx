@@ -99,18 +99,21 @@ export function TodayBloc({
               {weekdayLong(solarDayOfWeek(selected))}, {formatSolar(selected)}
             </p>
           </div>
-          <MoonPhase lunarDay={lunar.day} size={compact ? 40 : 52} />
+          <span data-fab-obstruct className="shrink-0">
+            <MoonPhase lunarDay={lunar.day} size={compact ? 40 : 52} />
+          </span>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div
             key={`${selected.year}-${selected.month}-${selected.day}`}
-            initial={reduce ? { opacity: 0 } : { rotateX: -70, opacity: 0.4, y: -8 }}
+            initial={reduce ? false : { rotateX: -70, opacity: 0.4, y: -8 }}
             animate={{ rotateX: 0, opacity: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { rotateX: 40, opacity: 0, y: 12 }}
+            exit={reduce ? undefined : { rotateX: 40, opacity: 0, y: 12 }}
             transition={{ duration: reduce ? 0.12 : 0.4, ease: EASE }}
             style={{ transformOrigin: "top center", perspective: 800 }}
             className="mt-3 grid grid-cols-2 gap-3"
+            data-fab-obstruct
           >
             <div>
               <p className="text-[12px] text-[var(--ink-muted)]">Dương lịch</p>
@@ -218,9 +221,11 @@ export function DayDetail({
             {weekdayLong(solarDayOfWeek(date))}, {formatSolar(date)}
           </p>
         </div>
-        <MoonPhase lunarDay={lunar.day} size={44} />
+        <span data-fab-obstruct className="shrink-0">
+          <MoonPhase lunarDay={lunar.day} size={44} />
+        </span>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-2 gap-3" data-fab-obstruct>
         <div>
           <p className="text-[12px] text-[var(--ink-muted)]">Dương lịch</p>
           <p className="font-heading text-5xl leading-none font-bold text-[var(--lacquer)]">
